@@ -1,0 +1,22 @@
+{
+  "name": "spheronab",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/corpr8/spheronAB.git"
+  },
+  "dependencies": {
+    "vectors": "^0.1.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/corpr8/spheronAB/issues"
+  },
+  "homepage": "https://github.com/corpr8/spheronAB#readme"
+}
