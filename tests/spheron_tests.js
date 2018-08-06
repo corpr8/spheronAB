@@ -15,7 +15,7 @@ var runTest = function(thisTestDefIdx){
 	var thisTestDocument = fs.readFileSync( __dirname + "/data/" + thisTestDef +'.json');
 	thisTestDocument = JSON.parse(thisTestDocument)
 
-	var spheron = new Spheron(thisTestDocument.io)
+	var spheron = new Spheron(thisTestDocument.connections)
 
 	for(var thisTest in thisTestDocument.tests) {
 		var expected = thisTestDocument.tests[thisTest].expected
