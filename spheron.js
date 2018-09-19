@@ -11,22 +11,24 @@ var heading = require('vectors/heading')(2)
 const radToDeg = 180 / Math.PI
 const degToRad = Math.PI / 180
 
-var Spheron = function (connections, exclusions) {
-	this.connections = (connections) ? connections : {}
-
-	//assing connId if we don't already have one
-	for(var thisConnection in this.connections){
-		if(!this.connections[thisConnection].connId){
-			this.connections[thisConnection].connId = generateUUID()
-		}
-	}
-
-	this.exclusions = (exclusions) ? exclusions : []
+var Spheron = function (config) {
+	//connections, exclusions, mode, problemId, testLength, testIdx
+	this.connections = (config.io) ? config.io : {}
+	this.exclusions = (config.exclusions) ? config.exclusions : []
 	this.signalVector = {}
-	this.signalTrace
+	this.signalTrace = []
 	this.stateTickStamp = 0
 	this.state = 'idle'
+	//optional
+	this.problemId = (config.problemId) ? config.problemId : -1 //a global id for the problem that this spheron is trying to solve.
+	this.testLength = (config.testLength) ? config.testLength : -1 //how long is the test plan?
+	this.testIdx = (config.testIdx) ? config.testIdx : -1 //if we are running a testl what is our current testIdx?
 };
+
+Spheron.prototype._calculateSignalTraces = function(){
+	//TODO: Write the back propagation of signaltraces across this spheron in the form: [Inputs].[Biases].[Outputs] - which should be recursive...
+	return
+}
 
 Spheron.prototype.calculateSignalVector = function(){
 	/*
@@ -38,38 +40,35 @@ Spheron.prototype.calculateSignalVector = function(){
 	for(var key in this.connections) {
 		var excludeThis = false
 		for(var excludeId in this.exclusions){
-			if(this.connections[key].connId == excludeId){
+			if(key == excludeId){
 				excludeThis = true
 			}
 		}
 
 		if(!excludeThis){
 			var thisConn = this.connections[key]
-	        if(thisConn.type == 'input' || thisConn.type == 'bias'){
-
-	        	if(thisConn.signalTrace){
-	        		//this connection already has a signalTrace, lets copy into the new signalTrace and also add the connectionId
-	        		for(var thisTraceItem in thisConn.signalTrace){
-	        			signalTrace.push(thisConn.signalTrace[thisTraceItem])
-	        		}
-	        	}
-	        	signalTrace.push(thisConn.connId)
-
+	        if(thisConn.type == 'input' || thisConn.type == 'bias' || thisConn.type == 'extInput'){
 	        	var thisConnCart = this._p2c(thisConn.val,(thisConn.angle * degToRad))
 	        	add(rv, thisConnCart)
-	        }	
+	        }
 		}
     }
     this.signalVector = rv
-    this.signalTrace = signalTrace
     return
 }
 
 Spheron.prototype.updateInputs = function(inputSignals){
+	//console.log(inputSignals)
 	if(inputSignals){
 		for(var key in inputSignals) {
 			var thisConnSignal = inputSignals[key]
-				this.connections[key].val = thisConnSignal.val
+			//this.connections[key].val = thisConnSignal.val
+
+			for(var connection in this.connections){
+				if((this.connections[connection]).id == key){
+					(this.connections[connection]).val = thisConnSignal.val
+				}
+			}
 		}
 	}
 	return
@@ -89,6 +88,21 @@ Spheron.prototype.updateExclusions = function(exclusions){
 	return
 }
 
+Spheron.prototype.setProblemId = function(problemId){
+	this.problemId = problemId
+	return
+}
+
+Spheron.prototype.testLength = function(testLength){
+	this.testLength = testLength
+	return
+}
+
+Spheron.prototype.testIdx = function(testIdx){
+	this.testIdx = testIdx
+	return
+}
+
 Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	/*
 	* Activate as above but exclude anything that happens to be in the exclusions array []. 
@@ -96,7 +110,7 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	* update input values - in this instance.
 	*/
 
-	console.log('this spherons connections: ' + JSON.stringify(this.connections))
+	//console.log('this spherons connections: ' + JSON.stringify(this.connections))
 	//console.log('this spherons signaltrace:' + this.signalTrace)
 
 	if(inputSignals){
@@ -107,6 +121,9 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 		this.updateExclusions(exclusions)	
 	}
 
+	//console.log('calculate signal traces')
+	//this._calculateSignalTraces()
+
 	this.calculateSignalVector()
 	var thisResults = {}
 
@@ -115,17 +132,17 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	*/
 
 	for(var key in this.connections) {
-		console.log(this.connections[key])
+		//console.log(this.connections[key])
 		var thisConn = this.connections[key]
 		
 		var excludeThis = false
 		for(var excludeId in this.exclusions){
-			if(thisConn.connId == excludeId){
+			if(key == excludeId){
 				excludeThis = true
 			}
 		}
 
-		if(thisConn.type == 'output' && excludeThis == false){
+		if((thisConn.type == 'output' || thisConn.type == 'extOutput') && excludeThis == false){
 			//find signalVector as a polar angle
 			var signalVectorHeading = heading(this.signalVector,[0,0])
 			var outputHeading = thisConn.angle * degToRad
@@ -133,19 +150,15 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 			var outputFinal = Math.floor((mag(this.signalVector) * outputAmp) * 100000)/100000
 
 			thisConn.val = outputFinal
-			var thisConnTrace = this.signalTrace
-			thisConnTrace.push (thisConn.connId)
-			thisConn.signalTrace = thisConnTrace
 
 			/*
 			* now apply any output flattening function
 			*/
-			thisConn = this._runOutputFn(thisConn)
-			thisResults[key] = thisConn.val
+			thisConn.val = this._runOutputFn(thisConn)
+			thisResults[this.connections[key].id] = thisConn.val
 		}
 	}
 	this.state = 'idle'
-
 	if(callback){
 		callback(thisResults)
 	} else {
@@ -173,7 +186,7 @@ Spheron.prototype._runOutputFn = function(thisConn){
 			console.log('output function not handled as yet. Please code it.')
 		}
 	}
-	return thisConn
+	return thisConn.val
 }
 
 Spheron.prototype._p2c = function(r, theta){return [(Math.floor((r * Math.cos(theta)) * 100000))/100000, (Math.floor((r * Math.sin(theta)) * 100000))/100000]}

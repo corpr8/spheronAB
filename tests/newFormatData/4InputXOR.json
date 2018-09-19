@@ -1,12 +1,12 @@
 {
 	"note" : "XOR Gate with test plan",
-	"connections": {
-		"input1": {"connId": "inputConn1", "type": "input", "angle": 0, "val": 0, "fromId": -1},
-		"input2": {"connId": "inputConn2", "type": "input", "angle": 0, "val": 0, "fromId": -1},
-		"input3": {"connId": "inputConn3", "type": "input", "angle": 0, "val": 0, "fromId": -1},
-		"input4": {"connId": "inputConn4", "type": "input", "angle": 0, "val": 0, "fromId": -1},
-		"ANDout": {"connId": "ANDOut", "type": "output", "angle": 60, "val": -1, "toId": -1, "outputFn" : {"mode": "neq_nz", "val": 2}}
-	},
+	"io": [
+		{"id" :"input1", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+		{"id" :"input2", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+		{"id" :"input3", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+		{"id" :"input4", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+		{"id" :"ANDout", "type": "extOutput", "angle": 60, "val": -1, "toId": "ext", "outputFn" : {"mode": "neq_nz", "val": 2}}
+	],
 	"tests" : [
 		{"inputs": {"input1": {"val": 0},"input2": {"val": 0},"input3": {"val": 0},"input4": {"val": 0}},"outputs": {"ANDout": {"val": 0}}},
 		{"inputs": {"input1": {"val": 0},"input2": {"val": 0},"input3": {"val": 0},"input4": {"val": 1}},"outputs": {"ANDout": {"val": 1}}},

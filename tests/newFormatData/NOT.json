@@ -1,0 +1,13 @@
+{
+	"note" : "NOT Gate",
+	"io": [
+		{"id": "input1", "type": "extInput", "angle": 0, "val": 0, "fromId":  "ext"},
+		{"id": "bias1", "type": "bias", "angle": 180, "val": 1},
+		{"id": "NOTOut", "type": "extOutput", "angle": 180, "val": -1, "toId":  "ext", "outFn" : {"mode": "eq", "val": 0}}
+	],
+	"tests" : [
+		{"inputs": {"input1": {"val": 0}},"outputs": {"NOTOut": {"val": 1}}},
+		{"inputs": {"input1": {"val": 1}},"outputs": {"NOTOut": {"val": 0}}}
+	]
+
+}

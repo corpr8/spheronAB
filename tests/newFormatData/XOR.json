@@ -1,10 +1,10 @@
 {
 	"note" : "XOR Gate with test plan",
-	"connections": {
-		"input1": {"connId": "inputConn1", "type": "input", "angle": 0, "val": 0, "fromId": -1},
-		"input2": {"connId": "inputConn2", "type": "input", "angle": 0, "val": 0, "fromId": -1},
-		"ANDOut": {"connId": "ANDOut", "type": "output", "angle": 60, "val": -1, "toId": -1, "outputFn" : {"mode": "eq", "val": 0.5}}
-	},
+	"io": [
+		{"id" : "input1", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+		{"id" : "input2", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+		{"id" : "ANDOut", "type": "extOutput", "angle": 60, "val": -1, "toId": "ext", "outputFn" : {"mode": "eq", "val": 0.5}}
+	],
 	"tests" : [
 		{"inputs": {"input1": {"val": 0},"input2": {"val": 0}},"outputs": {"ANDOut": {"val": 0}}},
 		{"inputs": {"input1": {"val": 0},"input2": {"val": 1}},"outputs": {"ANDOut": {"val": 1}}},

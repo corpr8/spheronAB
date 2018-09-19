@@ -1,0 +1,26 @@
+{
+	"note" : "basic problem definiton - fully interconnected network with AND Model test plan",
+	"id" : "whatIsAnd",
+	"options":{},
+	"network" : [
+		{"id": "inputSpheron1", "io": [
+			{"id" : "input1", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+			{"id" : "internal1", "type": "output", "angle": 60, "val": -1, "toId": "outputSpheron1"}
+		]},
+		{"id": "inputSpheron2", "io": [
+			{"id" : "input2", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+			{"id" : "internal2", "type": "output", "angle": 60, "val": -1, "toId": "outputSpheron1"}
+		]},
+		{"id": "outputSpheron1", "io": [
+			{"id" : "internal1", "type": "input", "angle": 0, "val": 0, "fromId": "inputSpheron1"},
+			{"id" : "internal2", "type": "input", "angle": 0, "val": 0, "fromId": "inputSpheron2"},
+			{"id" : "ANDout", "type": "extOutput", "angle": 60, "val": -1, "toId": "ext", "outputFn" : {"mode": "eq", "val": 1}}
+		]}
+	],
+	"tests" : [
+		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 0}, "spheron": "inputSpheron2", "input2": {"val": 0}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 0}}},
+		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 0}, "spheron": "inputSpheron2", "input2": {"val": 1}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 0}}},
+		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 1}, "spheron": "inputSpheron2", "input2": {"val": 0}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 0}}},
+		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 1}, "spheron": "inputSpheron2", "input2": {"val": 1}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 1}}}
+	]
+}

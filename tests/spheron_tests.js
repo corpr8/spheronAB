@@ -6,16 +6,16 @@
 
 var fs = require("fs")
 var Spheron = require('../spheron.js');
-var testDefs = ["NOT", "AND", "NAND", "NOR", "XOR", "4InputXOR","Fuzzy"]
+var testDefs = ["AND","XOR","NOT","4InputXOR","NAND","NOR","Fuzzy"]
 var testsFailed = 0
 
 var runTest = function(thisTestDefIdx){
 	var thisTestDef = testDefs[thisTestDefIdx]
 	console.log('\r\nrunning test: ' + thisTestDef)
-	var thisTestDocument = fs.readFileSync( __dirname + "/data/" + thisTestDef +'.json');
+	var thisTestDocument = fs.readFileSync( __dirname + "/newFormatData/" + thisTestDef +'.json');
 	thisTestDocument = JSON.parse(thisTestDocument)
 
-	var spheron = new Spheron(thisTestDocument.connections)
+	var spheron = new Spheron(thisTestDocument)
 
 	for(var thisTest in thisTestDocument.tests) {
 		var expected = thisTestDocument.tests[thisTest].expected
@@ -23,8 +23,10 @@ var runTest = function(thisTestDefIdx){
 
 		//iterate the expected outputs
 		for(var thisOutput in thisTestDocument.tests[thisTest].outputs){
+			//console.log(actual)
 			if(actual[thisOutput] != null){
 				console.log(JSON.stringify((thisTestDocument.tests[thisTest]).inputs) + ' ' + thisOutput + ' expected: ' + thisTestDocument.tests[thisTest].outputs[thisOutput].val + ' actual: ' + actual[thisOutput])
+				//console.log(thisTestDocument.tests[thisTest])
 				if(thisTestDocument.tests[thisTest].outputs[thisOutput].val != actual[thisOutput]){
 					testsFailed += 1
 				}
