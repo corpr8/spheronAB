@@ -112,6 +112,44 @@ var mongoUtils = {
 		console.log('Collection dropped')
 		callback()
 	},
+	setupDemoData: function(demoData, callback){
+		var that = this
+		this.dropCollection(function(){
+			//now import this spheron data into the db
+			//console.log(JSON.stringify(demoData))
+			//now iterate the data and load it...
+			that.createProblemDefinition(demoData, function(){
+				that.createSpheronFromArrayIterator(0, demoData, function(){
+					console.log('sample spherons created.')
+					callback()
+				})	
+			})
+		})
+	},
+	createProblemDefinition: function(demoData, callback){
+		var thisProblemDefinition = JSON.parse(JSON.stringify(demoData))
+		delete thisProblemDefinition.network
+		mongoNet.insertOne(thisProblemDefinition, function(err, res) {
+			if (err) throw err;
+			callback()
+		});
+	},
+	createSpheronFromArrayIterator: function(idx, problemDescription, callback){
+		var that = this
+		if(idx < (problemDescription.network).length){
+			console.log(JSON.stringify(problemDescription.network[idx]))
+			var thisSpheron = problemDescription.network[idx]
+			thisSpheron.problemId = problemDescription.id
+			mongoNet.insertOne(thisSpheron, function(err, res) {
+				if (err) throw err;
+				idx += 1
+				that.createSpheronFromArrayIterator(idx, problemDescription, callback)
+			});
+
+		} else {
+			callback()
+		}
+	},
 	getNextPendingSpheron: function(callback){
 		//The main function loop - pulls back spherons which are awaitng processing.
 		//TODO: Works but needs to return the one with the lowest pendAct + state == pending

@@ -9,17 +9,28 @@ var spheron = require('./spheron.js')
 var udpUtils = require('./udpUtils.js')
 var traceUtils = require('./traceUtils.js')
 
+
+
 //TODO: we need a callback handler for new spherons so that when they 'emit' status messages, we can update our workflow...
 
 var spheron_runner = {
+	loadDemoData: true,
 	systemTickTimer: null,
 	systemTick: null,
 	inTick: false,
 	init: function(callback){
 		var that = this
 		mongoUtils.init(function(){
-			that.startTicking()
-			callback()
+			if(that.loadDemoData == true){
+				var testData = require('./tests/newFormatData1/basicProblemDefinition.json')
+				mongoUtils.setupDemoData(testData, function(){
+					that.startTicking()
+					callback()
+				})	
+			} else {
+				that.startTicking()
+				callback()
+			}
 		})
 	},
 	startTicking: function(){
