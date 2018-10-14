@@ -1,0 +1,1 @@
+node ./spheron_runner.js > out.txt 2>&1

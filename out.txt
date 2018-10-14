@@ -1,0 +1,151 @@
+Connected to Mongo
+Collection dropped
+{"spheronId":"inputSpheron1","type":"spheron","state":"pending","io":[{"id":"input1","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal1","type":"output","angle":60,"val":-1,"toId":"outputSpheron1"}],"exclusions":[]}
+{"spheronId":"inputSpheron2","type":"spheron","state":"idle","io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal2","type":"output","angle":60,"val":-1,"toId":"outputSpheron1"}],"exclusions":[]}
+{"spheronId":"outputSpheron1","type":"idle","state":"idle","io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1}}],"exclusions":[]}
+sample spherons created.
+init complete
+systemTick: 0
+our pending spheron is: {"_id":"5bb2a16624ed5119f577422a","spheronId":"inputSpheron1","type":"spheron","state":"pending","io":[{"id":"input1","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal1","type":"output","angle":60,"val":-1,"toId":"outputSpheron1"}],"exclusions":[],"problemId":"whatIsAnd"}
+we loaded a spheron
+activating based on what is already on the inputs.
+running activate
+in the spherons activate function
+calling back from spherons activate function
+{ internal1: 0 }
+back from activating
+about to update spheron: inputSpheron1
+in a doc: {"_id":"5bb2a16624ed5119f577422a","spheronId":"inputSpheron1","type":"spheron","state":"running","io":[{"id":"input1","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal1","type":"output","angle":60,"val":-1,"toId":"outputSpheron1"}],"exclusions":[],"problemId":"whatIsAnd"}
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: -1,
+    toId: 'outputSpheron1' } ]
+0
+input1
+input1
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: -1,
+    toId: 'outputSpheron1' } ]
+0
+extInput
+extInput
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: -1,
+    toId: 'outputSpheron1' } ]
+0
+0
+0
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: -1,
+    toId: 'outputSpheron1' } ]
+0
+0
+0
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: -1,
+    toId: 'outputSpheron1' } ]
+0
+ext
+ext
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: -1,
+    toId: 'outputSpheron1' } ]
+1
+internal1
+internal1
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: -1,
+    toId: 'outputSpheron1' } ]
+1
+output
+output
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: -1,
+    toId: 'outputSpheron1' } ]
+1
+60
+60
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: -1,
+    toId: 'outputSpheron1' } ]
+1
+-1
+0
+[ { id: 'input1', type: 'extInput', angle: 0, val: 0, fromId: 'ext' },
+  { id: 'internal1',
+    type: 'output',
+    angle: 60,
+    val: 0,
+    toId: 'outputSpheron1' } ]
+1
+outputSpheron1
+outputSpheron1
+updated doc is: {"_id":"5bb2a16624ed5119f577422a","spheronId":"inputSpheron1","type":"spheron","state":"idle","io":[{"id":"input1","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal1","type":"output","angle":60,"val":0,"toId":"outputSpheron1"}],"exclusions":[],"problemId":"whatIsAnd"}
+update the database...
+systemTick: 1
+our pending spheron is: null
+systemTick: 2
+our pending spheron is: null
+systemTick: 3
+our pending spheron is: null
+systemTick: 4
+our pending spheron is: null
+systemTick: 5
+our pending spheron is: null
+systemTick: 6
+our pending spheron is: null
+systemTick: 7
+our pending spheron is: null
+systemTick: 8
+our pending spheron is: null
+systemTick: 9
+our pending spheron is: null
+systemTick: 10
+our pending spheron is: null
+systemTick: 11
+our pending spheron is: null
+systemTick: 12
+our pending spheron is: null
+systemTick: 13
+our pending spheron is: null
+systemTick: 14
+our pending spheron is: null
+systemTick: 15
+our pending spheron is: null
+systemTick: 16
+our pending spheron is: null
+systemTick: 17
+our pending spheron is: null
+systemTick: 18
+our pending spheron is: null
+systemTick: 19
+our pending spheron is: null
+
+handling SIGINT
+

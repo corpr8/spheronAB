@@ -13,16 +13,26 @@ const degToRad = Math.PI / 180
 
 var Spheron = function (config) {
 	//connections, exclusions, mode, problemId, testLength, testIdx
-	this.connections = (config.io) ? config.io : {}
-	this.exclusions = (config.exclusions) ? config.exclusions : []
+	this.io = (config.io) ? config.io : {}
+	
 	this.signalVector = {}
 	this.signalTrace = []
 	this.stateTickStamp = 0
 	this.state = 'idle'
+	this.spheronId =  (config.spheronId) ? config.spheronId : "missing" 
 	//optional
 	this.problemId = (config.problemId) ? config.problemId : -1 //a global id for the problem that this spheron is trying to solve.
 	this.testLength = (config.testLength) ? config.testLength : -1 //how long is the test plan?
 	this.testIdx = (config.testIdx) ? config.testIdx : -1 //if we are running a testl what is our current testIdx?
+	this.trainingMode = (config.trainingMode) ? config.trainingMode : true //do we actually want to back propagate and evolve? (true)
+	this.inputMessageQueue = (config.inputMessageQueue) ? config.inputMessageQueue : [] //activation messsages which are passed to this spheron
+	this.exclusionMaps = (config.exclusionMaps) ? config.exclusionMaps : [] //details of ab tests i.e [["bias1", "bias1a", "bias1b"]]
+	this.propogationMessageQueue = (config.propogationMessageQueue) ? config.propogationMessageQueue : [] //messages waiting to be passed downstream
+	this.bpErrorMessageQueue = (config.bpErrorMessageQueue) ? config.bpErrorMessageQueue : [] //backpropped messages waiting to be processed and passed upstream
+	this.exclusionErrorMaps = (config.exclusionErrorMaps) ? config.exclusionErrorMaps : [] //Here we will maintain our understanding of the performance of different variants
+	this.options = (config.options) ? config.options : {}
+
+	this.exclusions = (config.exclusions) ? config.exclusions : []
 };
 
 Spheron.prototype._calculateSignalTraces = function(){
@@ -37,7 +47,7 @@ Spheron.prototype.calculateSignalVector = function(){
 	*/
 	let rv = [0,0]
 	let signalTrace = []
-	for(var key in this.connections) {
+	for(var key in this.io) {
 		var excludeThis = false
 		for(var excludeId in this.exclusions){
 			if(key == excludeId){
@@ -46,7 +56,7 @@ Spheron.prototype.calculateSignalVector = function(){
 		}
 
 		if(!excludeThis){
-			var thisConn = this.connections[key]
+			var thisConn = this.io[key]
 	        if(thisConn.type == 'input' || thisConn.type == 'bias' || thisConn.type == 'extInput'){
 	        	var thisConnCart = this._p2c(thisConn.val,(thisConn.angle * degToRad))
 	        	add(rv, thisConnCart)
@@ -62,11 +72,11 @@ Spheron.prototype.updateInputs = function(inputSignals){
 	if(inputSignals){
 		for(var key in inputSignals) {
 			var thisConnSignal = inputSignals[key]
-			//this.connections[key].val = thisConnSignal.val
+			//this.io[key].val = thisConnSignal.val
 
-			for(var connection in this.connections){
-				if((this.connections[connection]).id == key){
-					(this.connections[connection]).val = thisConnSignal.val
+			for(var connection in this.io){
+				if((this.io[connection]).id == key){
+					(this.io[connection]).val = thisConnSignal.val
 				}
 			}
 		}
@@ -93,16 +103,6 @@ Spheron.prototype.setProblemId = function(problemId){
 	return
 }
 
-Spheron.prototype.testLength = function(testLength){
-	this.testLength = testLength
-	return
-}
-
-Spheron.prototype.testIdx = function(testIdx){
-	this.testIdx = testIdx
-	return
-}
-
 Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	/*
 	* Activate as above but exclude anything that happens to be in the exclusions array []. 
@@ -110,9 +110,9 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	* update input values - in this instance.
 	*/
 
-	//console.log('this spherons connections: ' + JSON.stringify(this.connections))
+	//console.log('this spherons connections: ' + JSON.stringify(this.io))
 	//console.log('this spherons signaltrace:' + this.signalTrace)
-
+	console.log('in the spherons activate function')
 	if(inputSignals){
 		this.updateInputs(inputSignals)	
 	}
@@ -131,9 +131,9 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	* now cycle the outputs and add them to thisResults as well as updating their value - if they are not excluded from test
 	*/
 
-	for(var key in this.connections) {
-		//console.log(this.connections[key])
-		var thisConn = this.connections[key]
+	for(var key in this.io) {
+		//console.log(this.io[key])
+		var thisConn = this.io[key]
 		
 		var excludeThis = false
 		for(var excludeId in this.exclusions){
@@ -155,38 +155,48 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 			* now apply any output flattening function
 			*/
 			thisConn.val = this._runOutputFn(thisConn)
-			thisResults[this.connections[key].id] = thisConn.val
+			//this.io[key].id = thisConn.val
+			thisResults[this.io[key].id] = thisConn.val
 		}
 	}
 	this.state = 'idle'
 	if(callback){
+		console.log('calling back from spherons activate function')
 		callback(thisResults)
 	} else {
+		console.log('returning from spherons activate function')
 		return thisResults
 	}
 }
 
 Spheron.prototype._runOutputFn = function(thisConn){
 	if(thisConn.outputFn){
-		if(thisConn.outputFn.mode == "eq"){
-			//tests if equal
-			thisConn.val = (thisConn.val == thisConn.outputFn.val) ? 1 : 0
-		} else if(thisConn.outputFn.mode == "neq"){
-			//tests if not equal
-			thisConn.val = (thisConn.val != thisConn.outputFn.val) ? 1 : 0
-		} else if(thisConn.outputFn.mode == "neq_nz"){
-			//tests if not equal && not zero
-			thisConn.val = (thisConn.val != thisConn.outputFn.val && thisConn.val != 0) ? 1 : 0
-		} else if(thisConn.outputFn.mode == "sigmoid"){
-			//applies the sigmoid flattening function ala traditional neurons.
-			//*** To be verified ***
-			thisConn.val = 1 / (1 + Math.exp(-thisConn.val))
-			//*** end To be verified ***
+		if(this.config.trainingMode == true && thisConn.outputFn.ignoreWhileTrain == true){
+			//nothing to do.
 		} else {
-			console.log('output function not handled as yet. Please code it.')
+			if(thisConn.outputFn.mode == "eq"){
+				//tests if equal
+				thisConn.val = (thisConn.val == thisConn.outputFn.val) ? 1 : 0
+			} else if(thisConn.outputFn.mode == "neq"){
+				//tests if not equal
+				thisConn.val = (thisConn.val != thisConn.outputFn.val) ? 1 : 0
+			} else if(thisConn.outputFn.mode == "neq_nz"){
+				//tests if not equal && not zero
+				thisConn.val = (thisConn.val != thisConn.outputFn.val && thisConn.val != 0) ? 1 : 0
+			} else if(thisConn.outputFn.mode == "sigmoid"){
+				//applies the sigmoid flattening function ala traditional neurons.
+				//*** To be verified ***
+				thisConn.val = 1 / (1 + Math.exp(-thisConn.val))
+				//*** end To be verified ***
+			} else {
+				console.log('output function not handled as yet. Please code it.')
+			}
+
+	
 		}
+
+		return thisConn.val
 	}
-	return thisConn.val
 }
 
 Spheron.prototype._p2c = function(r, theta){return [(Math.floor((r * Math.cos(theta)) * 100000))/100000, (Math.floor((r * Math.sin(theta)) * 100000))/100000]}

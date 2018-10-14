@@ -14,7 +14,7 @@ var mongoNet = [];
 
 var mongoUtils = {
 	init: function(callback){
-		MongoClient.connect(url, function(err, thisDb) {
+		MongoClient.connect(url, { useNewUrlParser: true }, function(err, thisDb) {
 			db = thisDb
 			if (err) throw err;
 			dbo = db.db("myBrain");
@@ -51,51 +51,24 @@ var mongoUtils = {
 	    	callback(result)
 		});
 	},
-	createSpheron: function(spheronName, model, callback){
-		/*
-		model = (!!model) ? model : {
-			io: {
-				input1: {type: "input", angle: 0, val: 0},
-				rst: {type: "input", angle: 0, val: 0},
-				bias: {type: "bias", angle: 180, val: 1},
-				Out1: {type: "output", angle: 45, val: 0}
-			}
-		};
-
-		model.type = "spheron"
-		model.spheronId = (model.spheronId) ? model.spheronId : generateUUID()
-		model.name = (spheronName) ? spheronName : "testSpheron"
-		model.state = (model.state) ? model.state : "idle"
-		model.stateTickStamp = (model.stateTickStamp) ? model.stateTickStamp : 0
-
-		console.log('creating spheron')
-
-		mongoNet.insertOne(model, function(err, res) {
-			if (err) throw err;
-
-			//return the new spheron id.
-			callback(model.spheronId)
-		});
-		*/
-	},
-	createConnection: function(model, callback){
-
-	},
-	getSpheron: function(spheronId, callback){
+	getSpheron: function(id, callback){
 		mongoNet.findOne({
 			type: "spheron",
-			spheronId: spheronId
+			id: id
 		}, function(err, result) {
 	    	if (err) throw err;
 	    	callback(result)
 		});
 	},
-	deleteSpheron: function(spheronId, callback){
+	deleteSpheron: function(id, callback){
 		/*
 		* TODO: We should make sure that deleting a spheron is safe - i.e. there are no connection objects pointing at or from it.
 		*/
 		try {
-			mongoNet.deleteOne( { type: "spheron", spheronId : spheronId } );
+			mongoNet.deleteOne({
+				type: "spheron", 
+				id : id 
+			});
 			callback()
 		} catch (e) {
 			console.log('bad delete: ' + e)
@@ -139,7 +112,7 @@ var mongoUtils = {
 		if(idx < (problemDescription.network).length){
 			console.log(JSON.stringify(problemDescription.network[idx]))
 			var thisSpheron = problemDescription.network[idx]
-			thisSpheron.problemId = problemDescription.id
+			thisSpheron.problemId = problemDescription.problemId
 			mongoNet.insertOne(thisSpheron, function(err, res) {
 				if (err) throw err;
 				idx += 1
@@ -165,43 +138,57 @@ var mongoUtils = {
 			if(err){
 				callback({})
 			} else { 
-				callback(doc)
+				callback(doc.value)
 			}	
 		})
 	},
-	incrementTick: function(callback){
-		mongoNet.findAndModify(
-		    {tick: "tock"},
-		    	[],
-		    { 
-		    	$inc: { "globalTick" :1 } },
-		    {
-		    	new: true,
-		    	upsert: true
-			}
-		    , function(err,res){
-			if(err){ 
-				throw err
-			} else {
-				callback(res.value.globalTick)
-			}
-		})
-	},
-	getTick: function(callback){
-		mongoNet.findOne(
-		    {tick: "tock"}, 
-		function(err,res){
-			if(err){ 
-				throw err
-			} else {
-				console.log(JSON.stringify(res))
-				callback(res.globalTick)
-			}
-		})
-	},
-	importProblem: function(targetSpheronetJSON, callback){
-		//Load a network from json into mongodb
-		
+	persistSpheron: function(spheronId, updateJSON, callback){
+		console.log('about to update spheron: ' + spheronId)
+		var hadDocuments = false
+			mongoNet.find({
+				"type":"spheron",
+				"spheronId" : spheronId
+			}).forEach(function (doc) {
+				if(doc){
+					hadDocuments = true
+					//console.log('in a doc: ' + JSON.stringify(doc))
+					if(updateJSON.io){
+						for (var port in updateJSON.io) {
+						    for (var setting in updateJSON.io[port]) {
+						    	//console.log(doc.io)
+						    	//console.log(port)
+						    	if(doc.io[port]){
+							    	//console.log(doc.io[port][setting])
+							    	//console.log(updateJSON.io[port][setting])
+							    	doc.io[port][setting] = updateJSON.io[port][setting]
+						    	}
+						    }
+						}
+					}
+					if(updateJSON.state){
+						doc.state = updateJSON.state
+					}
+					if(updateJSON.stateTickStamp){
+						doc.stateTickStamp = updateJSON.stateTickStamp
+					}
+
+					console.log('updated doc is: ' + JSON.stringify(doc))
+					mongoNet.updateOne({"spheronId" : spheronId },{$set:doc}, function(doc){
+						process.nextTick(function(){
+							callback()	
+						})
+					});
+				} else {
+					callback()
+				}					
+			}).then(function(){
+			if(hadDocuments == false){
+				console.log('had documents:' + hadDocuments)
+				console.log('weirdly we are here. Is this because of exactly 0 results???')
+				callback()
+			}	
+			})
+			
 	},
 	_mutationOperators: {
 		/*

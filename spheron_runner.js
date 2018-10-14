@@ -5,15 +5,13 @@
 */
 
 var mongoUtils = require('./mongoUtils.js')
-var spheron = require('./spheron.js')
+var Spheron = require('./spheron.js')
 var udpUtils = require('./udpUtils.js')
-var traceUtils = require('./traceUtils.js')
-
-
 
 //TODO: we need a callback handler for new spherons so that when they 'emit' status messages, we can update our workflow...
 
 var spheron_runner = {
+	thisSpheron: null,
 	loadDemoData: true,
 	systemTickTimer: null,
 	systemTick: null,
@@ -38,7 +36,7 @@ var spheron_runner = {
 		this.systemTick = 0
 		this.systemTickTimer = setInterval(function(){
 			t.tick()
-		},100) //fucking fast.
+		},100) //quick
 		return //as we are not blocking the thread, simply setting stuff up for later.
 	},
 	stopTicking: function(){
@@ -52,56 +50,111 @@ var spheron_runner = {
 			/*
 			* Here we should be checking for pending spherons...
 			*/
-			console.log('tick')
+			console.log('systemTick: ' + that.systemTick)
 			mongoUtils.getNextPendingSpheron(function(result){
 				//do tick stuff
-				console.log('our pending spheron output was: ' + JSON.stringify(result))
+				console.log('our pending spheron is: ' + JSON.stringify(result))
 				//Note: we should leave this 'in-tick' until we have finished our operations on this spheron.
 
 				//do we have a spheron?
 				// --> if so, propagate, backprop signalTraces and check signalTrace set completion...
+				if(result != null){
+					console.log('we loaded a spheron: ' + JSON.stringify(result))
+					that.thisSpheron = new Spheron(result)
 
-				//if not:
-				// --> increment system tick, inTick = false
+					console.log('performing activation and propagation functions.')
+					that.processSpheron(0, function(){
 
+					})
+					that.activate(function(){
+						//call forward and backward propagation
+						//test A.B stuff
+						//set the state to idle
 
+						//persist the spheron
+						console.log('back from activating')
 
-
-				that.systemTick += 1
-				that.inTick = false	
+						that.persistSpheron(function(){
+							console.log('updating the database...')
+							that.systemTick += 1
+							that.inTick = false
+						})
+					})
+				} else {
+					//if not:
+					// --> increment system tick, inTick = false
+					that.systemTick += 1
+					that.inTick = false
+				}
 			})
 		}
 	},
-	propagate: function(callback){
-		//call the propagate function of this spheron
-		//set the input of each downstream spheron
-		//set the state of each downstream spheron to pending
-		//get the signalTrace from eazch downstream connection and apply it to this specific output.
-		callback()
+	processSpheron: function(phaseIdx, callback){
+		switch(phaseIdx) {
+			case 0:
+		        /*
+				* Should we mutate?
+		        */
+		        break;
+			case 1:
+		        /*
+		        * Handle Input Messages
+		        *
+		        * Check the input message que. If "sync_inputs_to_sigId" == true, do we have a full set of input signals for a given signal id?
+		        * If we cannot find a full set then set the state back to pending and callback from activation
+		        * If we can, then - do we have any A/B test scenarios.
+		        * Yes => activate with each of the values on the inputs exclusively i.e. bias1 or bias1a but not both.
+		        * No => activate
+		        * Either way, set output signals onto the propagation message queue
+		        * Then increment phaseIdx and call this function.
+		        */
+		        break;
+		    case 2:
+		        /*
+		        * Handle backprop messages
+		        *
+		        * Copy propagation messages from the que to each of the downstream spherons input message queue
+		        * Copy any bpErrorMessageQueue items from the downstream spheron up to this spherons bpErrorMessageQue
+		        * Set the downstream spherons state to pending.
+		        * Then increment phaseIdx and call this function
+		        */
+		        break;
+		    case 3:
+		        /*
+		        * Handle multivariant resolution
+		        *
+		        * If the bpErrorMessage contains any of the connectionId's specified in the exclusionMap, copy that value into the exclusionErrorMap.
+		        * If the exclusion error map is full for both sides of a variant, we can calculate which performs best i.e: bias1 [0.1,0.23,0.25,0.39], bias1a [0.11,0.123,0.15,0139] 
+		        * bias1a definitely has the lowest errors and should outsurvive bias1
+		        * Increment phaseIdx and iterate
+		        */
+
+		        break;
+		    default:
+		    	if(phaseIdx <= 4){
+		    		phaseIdx += 1
+		    		this.processSpheron(phaseIdx, callback)
+		    	} else {
+		    		callback()
+		    	}
+		}
 	},
-	getDownstreamSignalTrace: function(callback){
-		//TODO
-		//find downstream Spherons
-		//get the input signalTrace from the downstream Spheron
-		//apply the signalTrace to this matching output
-		callback()
-	},
-	backprop: function(callback){
-		//ask the spheron to backtrace signal errors across this specific spheron
-		//i.e: if the trace looks like this at an output [1][2][3]
-		// then it looks like this at the bias: [1][2]
-		// and like this at i1 [1]
+	activate: function(callback){
+		//call the activate function of this spheron
+		var that = this
 
-		//for a 2 input gate:
-		// [1,2].[3].[4]
-
-
-		//TODO:
-		callback()
+		console.log('running activate')
+		this.thisSpheron.activate(null, null, function(thisResult){
+			console.log(thisResult)
+			callback()	
+		})
 	},
 	persistSpheron: function(callback){
 		//TODO: commit this spheron to mongo
-		callback()
+		var that = this
+		mongoUtils.persistSpheron((that.thisSpheron).spheronId, that.thisSpheron,function(){
+			callback()	
+		})
 	}
 
 }
