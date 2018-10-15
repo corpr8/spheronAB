@@ -64,21 +64,7 @@ var spheron_runner = {
 
 					console.log('performing activation and propagation functions.')
 					that.processSpheron(0, function(){
-
-					})
-					that.activate(function(){
-						//call forward and backward propagation
-						//test A.B stuff
-						//set the state to idle
-
-						//persist the spheron
-						console.log('back from activating')
-
-						that.persistSpheron(function(){
-							console.log('updating the database...')
-							that.systemTick += 1
-							that.inTick = false
-						})
+						that.inTick = false
 					})
 				} else {
 					//if not:
@@ -94,7 +80,13 @@ var spheron_runner = {
 			case 0:
 		        /*
 				* Should we mutate?
+				*
+				* We can make this decision based on the cumulative errors in the exclusion Error map.
+				* If the exclusion map is empty, this might also mean we want to mutate (as there are no experiments)
 		        */
+		        console.log('Phase0: should we mutate?')
+		        phaseIdx += 1
+		    	this.processSpheron(phaseIdx, callback)
 		        break;
 			case 1:
 		        /*
@@ -108,6 +100,24 @@ var spheron_runner = {
 		        * Either way, set output signals onto the propagation message queue
 		        * Then increment phaseIdx and call this function.
 		        */
+
+		        /*
+		        * Now we do this for each of the variants of experiments
+		        */
+
+		        that.activate(function(){
+					//call forward and backward propagation
+					//test A.B stuff
+					//set the state to idle
+
+					//persist the spheron
+					console.log('back from activating')
+				})
+
+
+		        console.log('Phase1: handle input messages')
+		        phaseIdx += 1
+		    	this.processSpheron(phaseIdx, callback)
 		        break;
 		    case 2:
 		        /*
@@ -118,6 +128,9 @@ var spheron_runner = {
 		        * Set the downstream spherons state to pending.
 		        * Then increment phaseIdx and call this function
 		        */
+		        console.log('Phase1: handle backprop messages')
+		        phaseIdx += 1
+		    	this.processSpheron(phaseIdx, callback)
 		        break;
 		    case 3:
 		        /*
@@ -128,14 +141,18 @@ var spheron_runner = {
 		        * bias1a definitely has the lowest errors and should outsurvive bias1
 		        * Increment phaseIdx and iterate
 		        */
-
+		        console.log('Phase1: handle multi-variant resolution')
+		        phaseIdx += 1
+		    	this.processSpheron(phaseIdx, callback)
 		        break;
 		    default:
 		    	if(phaseIdx <= 4){
 		    		phaseIdx += 1
 		    		this.processSpheron(phaseIdx, callback)
 		    	} else {
-		    		callback()
+		    		that.persistSpheron(function(){
+		    			callback()	
+		    		})
 		    	}
 		}
 	},
