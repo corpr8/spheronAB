@@ -40,7 +40,7 @@
 		},
 		{"spheronId": "inputSpheron2",
 			"type" : "spheron",
-			"state" : "idle",
+			"state" : "pending",
 			"options" : {
 				"sync_inputs_to_sigId" : false
 			},

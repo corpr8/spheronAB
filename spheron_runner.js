@@ -11,7 +11,7 @@ var udpUtils = require('./udpUtils.js')
 //TODO: we need a callback handler for new spherons so that when they 'emit' status messages, we can update our workflow...
 
 var spheron_runner = {
-	thisSpheron: null,
+	spheron: null,
 	loadDemoData: true,
 	systemTickTimer: null,
 	systemTick: null,
@@ -60,7 +60,7 @@ var spheron_runner = {
 				// --> if so, propagate, backprop signalTraces and check signalTrace set completion...
 				if(result != null){
 					console.log('we loaded a spheron: ' + JSON.stringify(result))
-					that.thisSpheron = new Spheron(result)
+					that.spheron = new Spheron(result)
 
 					console.log('performing activation and propagation functions.')
 					that.processSpheron(0, function(){
@@ -76,6 +76,7 @@ var spheron_runner = {
 		}
 	},
 	processSpheron: function(phaseIdx, callback){
+		var that = this
 		switch(phaseIdx) {
 			case 0:
 		        /*
@@ -90,36 +91,52 @@ var spheron_runner = {
 		        break;
 			case 1:
 		        /*
+				* Do we have enough information to fire the spheron?
+				* If "sync_inputs_to_sigId" == true, do we have a full set of input signals for any given signal id?
+		        * If we cannot find a full set then set the state back to pending and callback from activation
+				* 
+		        */
+		        console.log('Phase1: check if we have enough info in the queue to activate')
+		        if(that.spheron.options.sync_inputs_to_sigId == true){
+		        	//survey inputMessageQueue and see if we have a set of signals which correspond to a consistent signalId
+		        	//if we have a full set then increment the phaseIdx and iterate
+		        	//otherwise, set the spheron back to pending and persist it.
+		        } else {
+		        	//we are ok to Activate as this spheron doesn't need to sync inputs.
+			        phaseIdx += 1
+			    	this.processSpheron(phaseIdx, callback)
+			        break;
+		        }
+			case 2:
+		        /*
 		        * Handle Input Messages
 		        *
-		        * Check the input message que. If "sync_inputs_to_sigId" == true, do we have a full set of input signals for a given signal id?
-		        * If we cannot find a full set then set the state back to pending and callback from activation
-		        * If we can, then - do we have any A/B test scenarios.
+		        * do we have any A/B test scenarios?
+
 		        * Yes => activate with each of the values on the inputs exclusively i.e. bias1 or bias1a but not both.
 		        * No => activate
-		        * Either way, set output signals onto the propagation message queue
+		        * Either way, set output signals onto the propagation message queue - based on either A/B or direct.
 		        * Then increment phaseIdx and call this function.
 		        */
+		        console.log('Phase2: handle input messages')
+		        if((that.spheron.exclusionMaps).length > 0){
+		        	console.log(that.spheron.exclusionMaps)
+		        	console.log('we have variants!')
+		        	//todo: - handle them, write the output singalAudits and activate for each combination.
 
-		        /*
-		        * Now we do this for each of the variants of experiments
-		        */
-
-		        that.activate(function(){
-					//call forward and backward propagation
-					//test A.B stuff
-					//set the state to idle
-
-					//persist the spheron
 					console.log('back from activating')
-				})
-
-
-		        console.log('Phase1: handle input messages')
-		        phaseIdx += 1
-		    	this.processSpheron(phaseIdx, callback)
+					phaseIdx += 1
+				   	this.processSpheron(phaseIdx, callback)
+		        } else {
+		        	console.log('no variants...')
+		        	that.activate(function(){
+				      	console.log('back from activating')  
+				        phaseIdx += 1
+				    	that.processSpheron(phaseIdx, callback)
+					})
+		        }
 		        break;
-		    case 2:
+		    case 3:
 		        /*
 		        * Handle backprop messages
 		        *
@@ -128,11 +145,11 @@ var spheron_runner = {
 		        * Set the downstream spherons state to pending.
 		        * Then increment phaseIdx and call this function
 		        */
-		        console.log('Phase1: handle backprop messages')
+		        console.log('Phase3: handle backprop messages')
 		        phaseIdx += 1
 		    	this.processSpheron(phaseIdx, callback)
 		        break;
-		    case 3:
+		    case 4:
 		        /*
 		        * Handle multivariant resolution
 		        *
@@ -141,7 +158,7 @@ var spheron_runner = {
 		        * bias1a definitely has the lowest errors and should outsurvive bias1
 		        * Increment phaseIdx and iterate
 		        */
-		        console.log('Phase1: handle multi-variant resolution')
+		        console.log('Phase4: handle multi-variant resolution')
 		        phaseIdx += 1
 		    	this.processSpheron(phaseIdx, callback)
 		        break;
@@ -161,7 +178,7 @@ var spheron_runner = {
 		var that = this
 
 		console.log('running activate')
-		this.thisSpheron.activate(null, null, function(thisResult){
+		this.spheron.activate(null, null, function(thisResult){
 			console.log(thisResult)
 			callback()	
 		})
@@ -169,7 +186,7 @@ var spheron_runner = {
 	persistSpheron: function(callback){
 		//TODO: commit this spheron to mongo
 		var that = this
-		mongoUtils.persistSpheron((that.thisSpheron).spheronId, that.thisSpheron,function(){
+		mongoUtils.persistSpheron((that.spheron).spheronId, that.spheron,function(){
 			callback()	
 		})
 	}
