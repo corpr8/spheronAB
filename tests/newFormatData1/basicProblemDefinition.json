@@ -7,7 +7,7 @@
 	"network" : [
 		{"spheronId": "inputSpheron1",
 			"type" : "spheron",
-			"state" : "pending",
+			"state" : "idle",
 			"io": [
 				{"id" : "input1", "type": "extInput", "angle": 0, "fromId": "ext", "val":-1},
 				{"id" : "bias1", "type": "bias", "angle": 20, "val":-1},

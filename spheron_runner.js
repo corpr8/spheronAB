@@ -184,66 +184,74 @@ var spheron_runner = {
 			console.log('all non A/B data written to inputs.')
 
 			//iterate and delete anything non-variant.
-			/*
-			* TODO
-			* 
-			* This whole for next loop looks seriously dodgy to me...
-			* If we are iterating whilst deleting stuff, doesn't that leave us open to missing stuff / double counting????
-			* * => we should drop this out to an iterator which doesn't increase idx if we spliced...
-			*/
-			for(var inputMessageIdx in that.spheron.inputMessageQue){
-				if((that.spheron.inputMessageQueue[inputMessageIdx]).isVariant == false){
-					(that.spheron.inputMessageQue).splice(inputMessageIdx,1)
-				}
-			}
-			/*
-			* end dodgyness
-			*/
+			that._removeNonVariantIterator(0,function(){
 
-			//call activation if we have no multi-variant input messages
-			if((that.spheron.inputMessageQueue).length == 0){
-				console.log('activating based on non multi-variant inputs.')
-				that.spheron.activate(null, null, function(){
-					/*
-					* TODO: we should write the output to the output queue with the relevant signal trace
-					*/
+				//call activation if we have no multi-variant input messages
+				if((that.spheron.inputMessageQueue).length == 0){
+					console.log('activating based on non multi-variant inputs.')
+					that.spheron.activate(null, null, function(returnedData){
+						console.log('activated: ' + JSON.stringify(returnedData))
+						/*
+						* TODO: we should write the output to the output queue with the relevant signal trace
+						*/
+						that.inputQueueIterator(true, callback)
+					})
+				} else {
 					that.inputQueueIterator(true, callback)
-				})
+				}
+			})
+		} else {
+			/*
+			* non variants have been handled.
+			*/
+			if((that.spheron.inputMessageQueue).length > 0){
+				if((that.spheron.exclusionMaps).length > 0){
+					//we have a local exlusionMap and should consider if we need to exclude things whilst activating..
+					//TODO
+					console.log('we havent handled activating spherons with local exlusioon maps yet...')
+					/*
+					* TODO:
+					* Consider if we have a value from the local exlusion map.
+					* If yes, we should exclude any of its compliements from this test.
+					* then activate as per the next clause.
+					*/
+				} else {
+					//we are ok just to iteratively fire the activate function with no exclusions.
+					//set the input value
+					var targetKey = ((that.spheron.inputMessageQueue[0]).path).split(";")[((that.spheron.inputMessageQueue[0]).path).split(";").length -1]
+					//that.spheron.io[targetKey].val = (that.spheron.inputMessageQueue[inputMessageIdx]).val // <--NOTE: we need to iterate the io to find id=targetKey
+					
+					for(var thisConnectionIdx in that.spheron.io){
+						if(that.spheron.io[thisConnectionIdx].id == targetKey){
+							that.spheron.io[thisConnectionIdx].val = (that.spheron.inputMessageQueue[0]).val
+						}
+					}
+
+					//activate
+					console.log('activate and iterate')
+					that.spheron.activate(null,null,function(){
+						/*
+						* TODO: we should write the output to the output queue with the relevant signal trace...
+						*/
+						(that.spheron.inputMessageQueue).shift()
+						that.inputQueueIterator(processedNonVariants, callback)
+					})
+				}
+			} else {
+				callback()
 			}
 		}
-
-		if((that.spheron.inputMessageQueue).length > 0){
-			if((that.spheron.exclusionMaps).length > 0){
-				//we have a local exlusionMap and should consider if we need to exclude things whilst activating..
-				//TODO
-				console.log('we havent handled activating spherons with local exlusioon maps yet...')
-				/*
-				* TODO:
-				* Consider if we have a value from the local exlusion map.
-				* If yes, we should exclude any of its compliements from this test.
-				* then activate as per the next clause.
-				*/
+	},
+	_removeNonVariantIterator(idx,callback){
+		var that = this
+		idx = (idx) ? idx : 0
+		if(that.spheron.inputMessageQueue[idx]){
+			if((that.spheron.inputMessageQueue[idx]).isVariant == false){
+				(that.spheron.inputMessageQueue).splice(idx,1)
+				that._removeNonVariantIterator(idx,callback)
 			} else {
-				//we are ok just to iteratively fire the activate function with no exclusions.
-				//set the input value
-				var targetKey = ((that.spheron.inputMessageQueue[0]).path).split(";")[((that.spheron.inputMessageQueue[0]).path).split(";").length -1]
-				//that.spheron.io[targetKey].val = (that.spheron.inputMessageQueue[inputMessageIdx]).val // <--NOTE: we need to iterate the io to find id=targetKey
-				
-				for(var thisConnectionIdx in that.spheron.io){
-					if(that.spheron.io[thisConnectionIdx].id == targetKey){
-						that.spheron.io[thisConnectionIdx].val = (that.spheron.inputMessageQueue[0]).val
-					}
-				}
-
-				//activate
-				console.log('activate and iterate')
-				that.spheron.activate(null,null,function(){
-					/*
-					* TODO: we should write the output to the output queue with the relevant signal trace...
-					*/
-					(that.spheron.inputMessageQueue).shift()
-					that.inputQueueIterator(processedNonVariants, callback)
-				})
+				idx += 1
+				that._removeNonVariantIterator(idx,callback)
 			}
 		} else {
 			callback()

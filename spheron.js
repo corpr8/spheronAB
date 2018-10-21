@@ -48,6 +48,7 @@ Spheron.prototype.calculateSignalVector = function(){
 	let rv = [0,0]
 	let signalTrace = []
 	for(var key in this.io) {
+		console.log(rv)
 		var excludeThis = false
 		for(var excludeId in this.exclusions){
 			if(key == excludeId){
@@ -150,15 +151,18 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 			var outputFinal = Math.floor((mag(this.signalVector) * outputAmp) * 100000)/100000
 
 			thisConn.val = outputFinal
+			console.log(thisConn.val)
 
 			/*
 			* now apply any output flattening function
 			*/
 			thisConn.val = this._runOutputFn(thisConn)
+			console.log(thisConn.val)
 			//this.io[key].id = thisConn.val
 			thisResults[this.io[key].id] = thisConn.val
 		}
 	}
+	console.log('activation result (internal): ' + JSON.stringify(thisResults))
 	this.state = 'idle'
 	if(callback){
 		console.log('calling back from spherons activate function')
@@ -171,6 +175,7 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 
 Spheron.prototype._runOutputFn = function(thisConn){
 	if(thisConn.outputFn){
+		console.log('we had an output function')
 		if(this.config.trainingMode == true && thisConn.outputFn.ignoreWhileTrain == true){
 			//nothing to do.
 		} else {
@@ -192,11 +197,9 @@ Spheron.prototype._runOutputFn = function(thisConn){
 				console.log('output function not handled as yet. Please code it.')
 			}
 
-	
 		}
-
-		return thisConn.val
 	}
+	return thisConn.val
 }
 
 Spheron.prototype._p2c = function(r, theta){return [(Math.floor((r * Math.cos(theta)) * 100000))/100000, (Math.floor((r * Math.sin(theta)) * 100000))/100000]}
