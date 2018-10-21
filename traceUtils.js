@@ -113,7 +113,7 @@ var traceUtils = {
 		//TODO:
 		/*
 		* Looks for completed sets of data within a node - i.e.
-		* If a spheron has output variants: o1 and o2 then the paths might be [i1][b1][c1] or [i1][b1][c2] - if the test plan has 4 tests:
+		* If a spheron has output variants: o1 and o2 then the paths might be [i1][b1][o1] or [i1][b1][o2] - if the test plan has 4 tests:
 		* A complete set is
 		* [i1][b1][o1] - t0 - [i1][b1][o2]
 		* [i1][b1][o1] - t1 - [i1][b1][o2]

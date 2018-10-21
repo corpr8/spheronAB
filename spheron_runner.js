@@ -86,57 +86,34 @@ var spheron_runner = {
 				* If the exclusion map is empty, this might also mean we want to mutate (as there are no experiments)
 		        */
 		        console.log('Phase0: should we mutate?')
+
+		        //TODO: Mutation functions - note they will be additive mutation (either / or)
+
 		        phaseIdx += 1
-		    	this.processSpheron(phaseIdx, callback)
+		    	that.processSpheron(phaseIdx, callback)
 		        break;
 			case 1:
 		        /*
-				* Do we have enough information to fire the spheron?
-				* If "sync_inputs_to_sigId" == true, do we have a full set of input signals for any given signal id?
-		        * If we cannot find a full set then set the state back to pending and callback from activation
-				* 
+				* Handle Input Messages and Activation as follows:
+				*
+				* 1: Set any non variant messages as input values to the spheron and delete from queue
+				* if we have variants, set them and call activate individually (setting the correct signal audit) => store the output value on the propogationMessageQueue
+				* else just call activate
+				* Write each activate and unique signal path to propagation que
 		        */
-		        console.log('Phase1: check if we have enough info in the queue to activate')
-		        if(that.spheron.options.sync_inputs_to_sigId == true){
-		        	//survey inputMessageQueue and see if we have a set of signals which correspond to a consistent signalId
-		        	//if we have a full set then increment the phaseIdx and iterate
-		        	//otherwise, set the spheron back to pending and persist it.
-		        } else {
-		        	//we are ok to Activate as this spheron doesn't need to sync inputs.
+		        console.log('Phase1: lets handle input queues and activation?')
+		        that.inputQueueIterator(false, function(){
 			        phaseIdx += 1
-			    	this.processSpheron(phaseIdx, callback)
-			        break;
-		        }
-			case 2:
-		        /*
-		        * Handle Input Messages
-		        *
-		        * do we have any A/B test scenarios?
-
-		        * Yes => activate with each of the values on the inputs exclusively i.e. bias1 or bias1a but not both.
-		        * No => activate
-		        * Either way, set output signals onto the propagation message queue - based on either A/B or direct.
-		        * Then increment phaseIdx and call this function.
-		        */
-		        console.log('Phase2: handle input messages')
-		        if((that.spheron.exclusionMaps).length > 0){
-		        	console.log(that.spheron.exclusionMaps)
-		        	console.log('we have variants!')
-		        	//todo: - handle them, write the output singalAudits and activate for each combination.
-
-					console.log('back from activating')
-					phaseIdx += 1
-				   	this.processSpheron(phaseIdx, callback)
-		        } else {
-		        	console.log('no variants...')
-		        	that.activate(function(){
-				      	console.log('back from activating')  
-				        phaseIdx += 1
-				    	that.processSpheron(phaseIdx, callback)
-					})
-		        }
+				    that.processSpheron(phaseIdx, callback)
+				    
+		        })
 		        break;
-		    case 3:
+			case 2:
+				/*
+				* Handle propagation to downstream spherons...
+				*/
+				break;
+			case 3:
 		        /*
 		        * Handle backprop messages
 		        *
@@ -162,6 +139,15 @@ var spheron_runner = {
 		        phaseIdx += 1
 		    	this.processSpheron(phaseIdx, callback)
 		        break;
+		    case 5:
+		        /*
+		        * Persist spheron to mongo.
+		        */
+		        console.log('Phase3: persisting this spheron back to mongo...')
+
+		        phaseIdx += 1
+		    	this.processSpheron(phaseIdx, callback)
+		        break;
 		    default:
 		    	if(phaseIdx <= 4){
 		    		phaseIdx += 1
@@ -171,6 +157,96 @@ var spheron_runner = {
 		    			callback()	
 		    		})
 		    	}
+		}
+	},
+	inputQueueIterator: function(processedNonVariants, callback){
+		processedNonVariants = (processedNonVariants) ? processedNonVariants : false
+
+		console.log('in input queue iterator')
+		var that = this
+
+		if(processedNonVariants == false){
+			for(var inputMessageIdx in that.spheron.inputMessageQueue){				
+				console.log(that.spheron.inputMessageQueue[inputMessageIdx])
+				if((that.spheron.inputMessageQueue[inputMessageIdx]).isVariant == false){
+					var targetKey = ((that.spheron.inputMessageQueue[inputMessageIdx]).path).split(";")[((that.spheron.inputMessageQueue[inputMessageIdx]).path).split(";").length -1]
+					console.log('setting key:' + targetKey)
+					//(that.spheron.io[targetKey]).val = (that.spheron.inputMessageQueue[inputMessageIdx]).val // <--note: we need to iterate the io to find id=targetKey
+					for(var thisConnectionIdx in that.spheron.io){
+						if(that.spheron.io[thisConnectionIdx].id == targetKey){
+							that.spheron.io[thisConnectionIdx].val = (that.spheron.inputMessageQueue[inputMessageIdx]).val
+						}
+					}
+					processedNonVariants = true
+				} 
+			}
+			
+			console.log('all non A/B data written to inputs.')
+
+			//iterate and delete anything non-variant.
+			/*
+			* TODO
+			* 
+			* This whole for next loop looks seriously dodgy to me...
+			* If we are iterating whilst deleting stuff, doesn't that leave us open to missing stuff / double counting????
+			* * => we should drop this out to an iterator which doesn't increase idx if we spliced...
+			*/
+			for(var inputMessageIdx in that.spheron.inputMessageQue){
+				if((that.spheron.inputMessageQueue[inputMessageIdx]).isVariant == false){
+					(that.spheron.inputMessageQue).splice(inputMessageIdx,1)
+				}
+			}
+			/*
+			* end dodgyness
+			*/
+
+			//call activation if we have no multi-variant input messages
+			if((that.spheron.inputMessageQueue).length == 0){
+				console.log('activating based on non multi-variant inputs.')
+				that.spheron.activate(null, null, function(){
+					/*
+					* TODO: we should write the output to the output queue with the relevant signal trace
+					*/
+					that.inputQueueIterator(true, callback)
+				})
+			}
+		}
+
+		if((that.spheron.inputMessageQueue).length > 0){
+			if((that.spheron.exclusionMaps).length > 0){
+				//we have a local exlusionMap and should consider if we need to exclude things whilst activating..
+				//TODO
+				console.log('we havent handled activating spherons with local exlusioon maps yet...')
+				/*
+				* TODO:
+				* Consider if we have a value from the local exlusion map.
+				* If yes, we should exclude any of its compliements from this test.
+				* then activate as per the next clause.
+				*/
+			} else {
+				//we are ok just to iteratively fire the activate function with no exclusions.
+				//set the input value
+				var targetKey = ((that.spheron.inputMessageQueue[0]).path).split(";")[((that.spheron.inputMessageQueue[0]).path).split(";").length -1]
+				//that.spheron.io[targetKey].val = (that.spheron.inputMessageQueue[inputMessageIdx]).val // <--NOTE: we need to iterate the io to find id=targetKey
+				
+				for(var thisConnectionIdx in that.spheron.io){
+					if(that.spheron.io[thisConnectionIdx].id == targetKey){
+						that.spheron.io[thisConnectionIdx].val = (that.spheron.inputMessageQueue[0]).val
+					}
+				}
+
+				//activate
+				console.log('activate and iterate')
+				that.spheron.activate(null,null,function(){
+					/*
+					* TODO: we should write the output to the output queue with the relevant signal trace...
+					*/
+					(that.spheron.inputMessageQueue).shift()
+					that.inputQueueIterator(processedNonVariants, callback)
+				})
+			}
+		} else {
+			callback()
 		}
 	},
 	activate: function(callback){
