@@ -20,7 +20,7 @@ var spheron_runner = {
 		var that = this
 		mongoUtils.init(function(){
 			if(that.loadDemoData == true){
-				var testData = require('./tests/newFormatData1/basicProblemDefinition.json')
+				var testData = require('./tests/newFormatData1/basicProblemDefinitionV2.json')
 				mongoUtils.setupDemoData(testData, function(){
 					that.startTicking()
 					callback()
@@ -33,7 +33,7 @@ var spheron_runner = {
 	},
 	startTicking: function(){
 		var t = this
-		this.systemTick = 0
+		this.systemTick = 1
 		this.systemTickTimer = setInterval(function(){
 			t.tick()
 		},100) //quick
@@ -160,11 +160,72 @@ var spheron_runner = {
 		}
 	},
 	inputQueueIterator: function(processedNonVariants, callback){
+		//find oldest timestamp in inputQueue
+		//is it less than or equal to our current timestamp
+		// => yes
+		//	Set all of the non variant values.
+		//	Are there any multi Variant values?
+		//	  =>yes
+		//		iterate them activating each time
+		//		set relevant exlculsion map (if the multi-variant is local to this spheron)
+		//    => no
+		//		Actviate immediately
+		//		callback
+		//
+		// => no - nothing to do for this phase. Callback.
+
+
 		processedNonVariants = (processedNonVariants) ? processedNonVariants : false
 
 		console.log('in input queue iterator')
 		var that = this
+		var oldestMessageAge = that._getOldestTickFromMessageQueue()
+		console.log('oldest message in queue: ' + oldestMessageAge)
+		console.log('system Tick: ' + that.systemTick)
+		console.log(oldestMessageAge <= that.systemTick)
+		if(oldestMessageAge != 0 && oldestMessageAge <= that.systemTick){
+			//we have messages in the input queue
+			console.log('we found messages in the inputQueue which are older than our current tick and therefore eligible for processing.')
+			if((that.spheron.inputMessageQueue[oldestMessageAge].nonVariant).length > 0){
+				//we found some non-variant messages to handle
+				
+				/*
+				* NOte: we have to pay attention to sigId's. TODO - we should actually check if there is anything in the variant message side as well.
+				* We should then call a devoted function which sets all messages and activates automatically for variant / nonVariant combinations.
+				*/
 
+				for(var thisMessageIdx in that.spheron.inputMessageQueue.nonVariant){
+					var targetKey = ((that.spheron.inputMessageQueue[thisMessageIdx]).path).split(";")[((that.spheron.inputMessageQueue[thisMessageIdx]).path).split(";").length -1]
+					for(var thisConnectionIdx in that.spheron.io){
+						if(that.spheron.io[thisConnectionIdx].id == targetKey){
+							that.spheron.io[thisConnectionIdx].val = (that.spheron.inputMessageQueue.nonVariant[thisMessageIdx]).val
+						}
+					}
+				}
+				//clear out the non-variant message queue
+				for(var thisMessageIdx in that.spheron.inputMessageQueue.nonVariant){
+					(that.spheron.inputMessageQueue.nonVariant).splice(0,1)
+				}
+
+				if((that.spheron.inputMessageQueue.variant).length == 0){
+					//as we only have non-variant messages, we should fire immediately then call back to this function
+					console.log('firing')
+					process.exit()
+				}
+
+			} else {
+				//we only have variant messages.
+
+				//don't forget to delete the timestamp key at the end...
+			}
+
+		} else {
+			//Nothing in the message que to process right now. Time to callback
+			callback()
+		}
+		process.exit()
+		
+		/*
 		if(processedNonVariants == false){
 			for(var inputMessageIdx in that.spheron.inputMessageQueue){				
 				console.log(that.spheron.inputMessageQueue[inputMessageIdx])
@@ -191,9 +252,7 @@ var spheron_runner = {
 					console.log('activating based on non multi-variant inputs.')
 					that.spheron.activate(null, null, function(returnedData){
 						console.log('activated: ' + JSON.stringify(returnedData))
-						/*
-						* TODO: we should write the output to the output queue with the relevant signal trace
-						*/
+						//TODO: we should write the output to the output queue with the relevant signal trace
 						that.inputQueueIterator(true, callback)
 					})
 				} else {
@@ -201,26 +260,21 @@ var spheron_runner = {
 				}
 			})
 		} else {
-			/*
-			* non variants have been handled.
-			*/
+			//non variants have been handled.
 			if((that.spheron.inputMessageQueue).length > 0){
 				if((that.spheron.exclusionMaps).length > 0){
 					//we have a local exlusionMap and should consider if we need to exclude things whilst activating..
 					//TODO
 					console.log('we havent handled activating spherons with local exlusioon maps yet...')
-					/*
-					* TODO:
-					* Consider if we have a value from the local exlusion map.
-					* If yes, we should exclude any of its compliements from this test.
-					* then activate as per the next clause.
-					*/
+					// TODO:
+					// Consider if we have a value from the local exlusion map.
+					// If yes, we should exclude any of its compliements from this test.
+					// then activate as per the next clause.
 				} else {
 					//we are ok just to iteratively fire the activate function with no exclusions.
 					//set the input value
 					var targetKey = ((that.spheron.inputMessageQueue[0]).path).split(";")[((that.spheron.inputMessageQueue[0]).path).split(";").length -1]
 					//that.spheron.io[targetKey].val = (that.spheron.inputMessageQueue[inputMessageIdx]).val // <--NOTE: we need to iterate the io to find id=targetKey
-					
 					for(var thisConnectionIdx in that.spheron.io){
 						if(that.spheron.io[thisConnectionIdx].id == targetKey){
 							that.spheron.io[thisConnectionIdx].val = (that.spheron.inputMessageQueue[0]).val
@@ -230,9 +284,7 @@ var spheron_runner = {
 					//activate
 					console.log('activate and iterate')
 					that.spheron.activate(null,null,function(){
-						/*
-						* TODO: we should write the output to the output queue with the relevant signal trace...
-						*/
+						//TODO: we should write the output to the output queue with the relevant signal trace...
 						(that.spheron.inputMessageQueue).shift()
 						that.inputQueueIterator(processedNonVariants, callback)
 					})
@@ -241,8 +293,15 @@ var spheron_runner = {
 				callback()
 			}
 		}
+		*/
 	},
-	_removeNonVariantIterator(idx,callback){
+	_getOldestTickFromMessageQueue: function(){
+		var that = this
+		//console.log('diag:' + JSON.stringify(that.spheron.inputMessageQueue))
+		return (parseInt(Object.keys(that.spheron.inputMessageQueue)[0]))
+	},
+	_removeNonVariantIterator: function(idx,callback){
+		//Old do not use
 		var that = this
 		idx = (idx) ? idx : 0
 		if(that.spheron.inputMessageQueue[idx]){
