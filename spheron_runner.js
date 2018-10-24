@@ -176,17 +176,11 @@ var spheron_runner = {
 
 
 		processedNonVariants = (processedNonVariants) ? processedNonVariants : false
-
 		console.log('in input queue iterator')
 		var that = this
-		var oldestMessageAge = that._getOldestTickFromMessageQueue()
-		console.log('oldest message in queue: ' + oldestMessageAge)
-		console.log('system Tick: ' + that.systemTick)
-		console.log(oldestMessageAge <= that.systemTick)
-		if(oldestMessageAge != 0 && oldestMessageAge <= that.systemTick){
-			//we have messages in the input queue
-			console.log('we found messages in the inputQueue which are older than our current tick and therefore eligible for processing.')
-			if((that.spheron.inputMessageQueue[oldestMessageAge].nonVariant).length > 0){
+		that._inputMessageQueueAgeIterator(function(){
+			process.exit()
+		})
 				//we found some non-variant messages to handle
 				
 				/*
@@ -213,17 +207,8 @@ var spheron_runner = {
 					process.exit()
 				}
 
-			} else {
-				//we only have variant messages.
 
-				//don't forget to delete the timestamp key at the end...
-			}
-
-		} else {
-			//Nothing in the message que to process right now. Time to callback
-			callback()
-		}
-		process.exit()
+		
 		
 		/*
 		if(processedNonVariants == false){
@@ -294,6 +279,42 @@ var spheron_runner = {
 			}
 		}
 		*/
+	},
+	_inputMessageQueueAgeIterator: function(callback){
+		/*
+		* Iterate through the top layer (message timestamp) of the inputMessageQueue
+		*/
+		var that = this
+		var oldestMessageAge = that._getOldestTickFromMessageQueue()
+		console.log('oldest message in queue: ' + oldestMessageAge)
+		console.log('system Tick: ' + that.systemTick)
+		console.log(oldestMessageAge <= that.systemTick)
+		if(oldestMessageAge != 0 && oldestMessageAge <= that.systemTick){
+			//we have messages in the input queue
+			console.log('we found messages in the inputQueue which are older than our current tick and therefore eligible for processing.')
+			
+			//call the sigId iterator.
+			that._inputMessageSigIdIterator(oldestMessageAge, function(){
+				//iterate incase there is more to do...
+				that._inputMessageQueueAgeIterator(callback)	
+			})
+		} else {
+			console.log('no processing to be done within the inputMessageQueue')
+			callback()
+		}
+
+	},
+	_inputMessageSigIdIterator: function(timestamp, callback){
+		/*
+		* Iterate through the second layer (message sigId's) of the inputMessageQueue
+		*/
+		
+		//set all non-variant inputs.
+		//are there any variants?
+		//=> yes - activate for each variant in turn (excluding others)
+		//=> no - activate and callback 
+				
+			
 	},
 	_getOldestTickFromMessageQueue: function(){
 		var that = this
