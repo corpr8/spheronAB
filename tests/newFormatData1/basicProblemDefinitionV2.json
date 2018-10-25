@@ -18,9 +18,12 @@
 				"1": {
 					"sigId-123456789":{
 						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 0, "isVariant": false, "sigId" : "123456789" },
 							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 0, "isVariant": false, "sigId" : "123456789" }
 						],
-						"variant": []
+						"variant": [
+							
+						]
 					}
 				},
 				"2": {
@@ -33,7 +36,7 @@
 				}
 				
 			},
-			"exclusionMaps" : [
+			"variantMaps" : [
 				["bias1", "bias1a"]
 			],
 			"propogationMessageQueue": {
@@ -60,7 +63,7 @@
 				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 1},
 				{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 0.3}
 			],
-			"exclusionErrorMaps" : [
+			"variantErrorMaps" : [
 				{
 					"bias1":[ 1, null, null, null],
 					"bias1a":[0.3, null, null, null]
@@ -84,7 +87,7 @@
 					}
 				}
 			},
-			"exclusionMaps" : [
+			"variantMaps" : [
 			],
 			"propogationMessageQueue": [
 					{"problemId" : "whatIsAnd", "path" : "input2;internal2", "isVariant": false, "testIdx": 0, "val": -1, "sigId" : "123456789"}
@@ -92,7 +95,7 @@
 			"bpErrorMessageQueue" : [
 
 			],
-			"exclusionErrorMaps" : [
+			"variantErrorMaps" : [
 			]
 		},
 		{"spheronId": "outputSpheron1",
@@ -104,7 +107,7 @@
 				{"id" : "ANDout", "type": "extOutput", "angle": 60, "val": -1, "toId": "ext", "outputFn" : {"mode": "eq", "val": 1, "ignoreWhileTrain": true}}
 			],
 			"inputMessageQueue": {},
-			"exclusionMaps" : [
+			"variantMaps" : [
 			],			
 			"propogationMessageQueue": [
 				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "val": 1, "sigId" : "123456789"},
@@ -114,7 +117,7 @@
 				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 1},
 				{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 0.3}
 			],
-			"exclusionErrorMaps" : [
+			"variantErrorMaps" : [
 			]
 		}
 	],

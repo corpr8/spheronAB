@@ -308,18 +308,87 @@ var spheron_runner = {
 		/*
 		* Iterate through the second layer (message sigId's) of the inputMessageQueue
 		*/
-		
-		//set all non-variant inputs.
-		//are there any variants?
-		//=> yes - activate for each variant in turn (excluding others)
-		//=> no - activate and callback 
-				
-			
+		var that = this
+		that._getSigIdFromMessageQueue(timestamp, function(thisSigId){
+			if(thisSigId){
+				//TODO:
+				console.log('we found sigId: ' + thisSigId +  ' within timestamp: ' + timestamp)
+
+				//set all non-variant inputs and remove them from the queue.
+				//console.log('this message:' + that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0])
+				if(that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.length > 0 && typeof that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined' ){
+					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";").length -1]
+					console.log('we are going to update: ' + targetInput)
+					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0], 0, function(){
+						console.log('we updated the input...')
+						//clear the message from the queue.
+						var v = (that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).shift()
+						console.log('deleted message from the nonVariant queue. ')
+
+						if(((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).length == 0 ||  that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined') && (that.spheron.inputMessageQueue[timestamp][thisSigId].variant).length == 0){
+							//activate immediately - note activate takes care of internal multivariance...
+							that.activate(function(){
+								console.log('activated')
+								that._inputMessageSigIdIterator(timestamp, callback)	
+							})
+						} else {
+							that._inputMessageSigIdIterator(timestamp, callback)
+						}
+					})
+				} else if(that.spheron.inputMessageQueue[timestamp][thisSigId].variant.length > 0){
+					console.log('in variant branch')
+					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";").length -1]
+					//TODO: handle variant activations...
+					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0], 0, function(){
+						console.log('we updated the input... (variant)')
+						//clear the message from the queue.
+						(that.spheron.inputMessageQueue[timestamp][thisSigId].variant).shift()
+						console.log('deleted the message from the variant queue')
+						that.activate(function(){
+							console.log('activated')
+							that._inputMessageSigIdIterator(timestamp, callback)
+						})
+					})
+				} else {
+					that.spheron.inputMessageQueue[timestamp][thisSigId] = undefined
+					that._inputMessageSigIdIterator(timestamp, callback)
+				}
+			} else {
+				that.spheron.inputMessageQueue[timestamp] = undefined
+				callback()
+			}
+		})
+	},
+	_searchUpdateInputIterator: function(targetInput, updateMessage, idx, callback){
+		var that = this
+		if(idx < that.spheron.io.length){
+			if(that.spheron.io[idx].id == targetInput){
+				//now we update this input.
+				//TODO: extend for pathing.
+				that.spheron.io[idx].val = updateMessage.val
+				callback()
+			}else {
+				idx += 1
+				that._searchUpdateInputIterator(targetInput, updateMessage, idx, callback)
+			}
+		} else {
+			callback()
+		}
+	},
+	_getSigIdFromMessageQueue: function(timestamp, callback){
+		var that = this
+		console.log(that.spheron.inputMessageQueue[timestamp])
+		var thisSigId = Object.keys(that.spheron.inputMessageQueue[timestamp])[0]
+		if(((that.spheron.inputMessageQueue[timestamp][thisSigId]).nonVariant).length > 0  && typeof that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined' ){
+			callback(thisSigId)
+		} else {
+			callback()
+		}
 	},
 	_getOldestTickFromMessageQueue: function(){
 		var that = this
 		//console.log('diag:' + JSON.stringify(that.spheron.inputMessageQueue))
-		return (parseInt(Object.keys(that.spheron.inputMessageQueue)[0]))
+		return (Object.keys(that.spheron.inputMessageQueue)[0])
 	},
 	_removeNonVariantIterator: function(idx,callback){
 		//Old do not use
@@ -339,6 +408,7 @@ var spheron_runner = {
 	},
 	activate: function(callback){
 		//call the activate function of this spheron
+		//TODO: auotmatically handle internal A/B - i.e. if this spheron has a variantMap then we need to fire for each (exclusively)
 		var that = this
 
 		console.log('running activate')

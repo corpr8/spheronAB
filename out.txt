@@ -1,151 +1,58 @@
 Connected to Mongo
 Collection dropped
-{"spheronId":"inputSpheron1","type":"spheron","state":"pending","io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":-1},{"id":"bias1","type":"bias","angle":20,"val":-1},{"id":"bias1a","type":"bias","angle":24,"val":-1},{"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1","val":-1}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}],"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"exclusionErrorMaps":[{"bias1":[1,null,null,null],"bias1a":[0.3,null,null,null]}]}
-{"spheronId":"inputSpheron2","type":"spheron","state":"pending","io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal2","type":"output","angle":60,"val":-1,"toId":"outputSpheron1"}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input2;internal2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"bpErrorMessageQueue":[],"exclusionErrorMaps":[]}
-{"spheronId":"outputSpheron1","type":"spheron","state":"idle","io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input2;internal2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}],"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"exclusionErrorMaps":[]}
+{"spheronId":"inputSpheron1","type":"spheron","state":"pending","io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":-1},{"id":"bias1","type":"bias","angle":20,"val":-1},{"id":"bias1a","type":"bias","angle":24,"val":-1},{"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1","val":-1}],"inputMessageQueue":{"1":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"}],"variant":[]}},"2":{"sigId-234567890":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1","testIdx":1,"val":0,"isVariant":false,"sigId":"234567890"}],"variant":[]}}},"variantMaps":[["bias1","bias1a"]],"propogationMessageQueue":{"timestamp-2":{"sigId-123456789":{"nonVariant":[],"variant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}]}},"timestamp-3":{"sigId-234567890":{"nonVariant":[],"variant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"234567890"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"234567890"}]}}},"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"variantErrorMaps":[{"bias1":[1,null,null,null],"bias1a":[0.3,null,null,null]}]}
+{"spheronId":"inputSpheron2","type":"spheron","state":"idle","io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal2","type":"output","angle":60,"val":-1,"toId":"outputSpheron1"}],"inputMessageQueue":{"1":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input2","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"}],"variant":[]}}},"variantMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input2;internal2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"bpErrorMessageQueue":[],"variantErrorMaps":[]}
+{"spheronId":"outputSpheron1","type":"spheron","state":"idle","io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{},"variantMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}],"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"variantErrorMaps":[]}
 sample spherons created.
 init complete
-systemTick: 0
-our pending spheron is: {"_id":"5bc8d757a1778c5fee0aab89","spheronId":"inputSpheron1","type":"spheron","state":"pending","io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":-1},{"id":"bias1","type":"bias","angle":20,"val":-1},{"id":"bias1a","type":"bias","angle":24,"val":-1},{"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1","val":-1}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}],"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"exclusionErrorMaps":[{"bias1":[1,null,null,null],"bias1a":[0.3,null,null,null]}],"problemId":"whatIsAnd"}
-we loaded a spheron: {"_id":"5bc8d757a1778c5fee0aab89","spheronId":"inputSpheron1","type":"spheron","state":"pending","io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":-1},{"id":"bias1","type":"bias","angle":20,"val":-1},{"id":"bias1a","type":"bias","angle":24,"val":-1},{"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1","val":-1}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}],"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"exclusionErrorMaps":[{"bias1":[1,null,null,null],"bias1a":[0.3,null,null,null]}],"problemId":"whatIsAnd"}
-performing activation and propagation functions.
-Phase0: should we mutate?
-in input queue iterator
-{ problemId: 'whatIsAnd',
-  path: 'input1',
-  testIdx: 0,
-  val: -1,
-  sigId: '123456789' }
-all non A/B data written to inputs.
-activate and iterate
-in the spherons activate function
-calling back from spherons activate function
-in input queue iterator
-all non A/B data written to inputs.
-activating based on non multi-variant inputs.
-in the spherons activate function
-calling back from spherons activate function
-in input queue iterator
-Phase3: handle backprop messages
-Phase4: handle multi-variant resolution
-about to update spheron: inputSpheron1
-Phase3: handle backprop messages
-Phase4: handle multi-variant resolution
-about to update spheron: inputSpheron1
-updated doc is: {"_id":"5bc8d757a1778c5fee0aab89","spheronId":"inputSpheron1","type":"spheron","state":"idle","io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":-1},{"id":"bias1","type":"bias","angle":20,"val":-1},{"id":"bias1a","type":"bias","angle":24,"val":-1},{"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1"}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}],"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"exclusionErrorMaps":[{"bias1":[1,null,null,null],"bias1a":[0.3,null,null,null]}],"problemId":"whatIsAnd"}
-updated doc is: {"_id":"5bc8d757a1778c5fee0aab89","spheronId":"inputSpheron1","type":"spheron","state":"idle","io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":-1},{"id":"bias1","type":"bias","angle":20,"val":-1},{"id":"bias1a","type":"bias","angle":24,"val":-1},{"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1"}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}],"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"exclusionErrorMaps":[{"bias1":[1,null,null,null],"bias1a":[0.3,null,null,null]}],"problemId":"whatIsAnd"}
-systemTick: 0
-our pending spheron is: {"_id":"5bc8d757a1778c5fee0aab8a","spheronId":"inputSpheron2","type":"spheron","state":"pending","io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal2","type":"output","angle":60,"val":-1,"toId":"outputSpheron1"}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input2;internal2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"problemId":"whatIsAnd"}
-we loaded a spheron: {"_id":"5bc8d757a1778c5fee0aab8a","spheronId":"inputSpheron2","type":"spheron","state":"pending","io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal2","type":"output","angle":60,"val":-1,"toId":"outputSpheron1"}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input2;internal2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"problemId":"whatIsAnd"}
-performing activation and propagation functions.
-Phase0: should we mutate?
-in input queue iterator
-{ problemId: 'whatIsAnd',
-  path: 'input2',
-  isVariant: false,
-  testIdx: 0,
-  val: -1,
-  sigId: '123456789' }
-setting key:input2
-all non A/B data written to inputs.
-activate and iterate
-in the spherons activate function
-calling back from spherons activate function
-in input queue iterator
-Phase3: handle backprop messages
-Phase4: handle multi-variant resolution
-about to update spheron: inputSpheron2
-updated doc is: {"_id":"5bc8d757a1778c5fee0aab8a","spheronId":"inputSpheron2","type":"spheron","state":"idle","io":[{"id":"input2","type":"extInput","angle":0,"val":-1,"fromId":"ext"},{"id":"internal2","type":"output","angle":60,"toId":"outputSpheron1"}],"inputMessageQueue":[{"problemId":"whatIsAnd","path":"input2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"exclusionMaps":[],"propogationMessageQueue":[{"problemId":"whatIsAnd","path":"input2;internal2","isVariant":false,"testIdx":0,"val":-1,"sigId":"123456789"}],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"problemId":"whatIsAnd"}
-systemTick: 0
-our pending spheron is: null
 systemTick: 1
-our pending spheron is: null
-systemTick: 2
-our pending spheron is: null
-systemTick: 3
-our pending spheron is: null
-systemTick: 4
-our pending spheron is: null
-systemTick: 5
-our pending spheron is: null
-systemTick: 6
-our pending spheron is: null
-systemTick: 7
-our pending spheron is: null
-systemTick: 8
-our pending spheron is: null
-systemTick: 9
-our pending spheron is: null
-systemTick: 10
-our pending spheron is: null
-systemTick: 11
-our pending spheron is: null
-systemTick: 12
-our pending spheron is: null
-systemTick: 13
-our pending spheron is: null
-systemTick: 14
-our pending spheron is: null
-systemTick: 15
-our pending spheron is: null
-systemTick: 16
-our pending spheron is: null
-systemTick: 17
-our pending spheron is: null
-systemTick: 18
-our pending spheron is: null
-systemTick: 19
-our pending spheron is: null
-systemTick: 20
-our pending spheron is: null
-systemTick: 21
-our pending spheron is: null
-systemTick: 22
-our pending spheron is: null
-systemTick: 23
-our pending spheron is: null
-systemTick: 24
-our pending spheron is: null
-systemTick: 25
-our pending spheron is: null
-systemTick: 26
-our pending spheron is: null
-systemTick: 27
-our pending spheron is: null
-systemTick: 28
-our pending spheron is: null
-systemTick: 29
-our pending spheron is: null
-systemTick: 30
-our pending spheron is: null
-systemTick: 31
-our pending spheron is: null
-systemTick: 32
-our pending spheron is: null
-systemTick: 33
-our pending spheron is: null
-systemTick: 34
-our pending spheron is: null
-systemTick: 35
-our pending spheron is: null
-systemTick: 36
-our pending spheron is: null
-systemTick: 37
-our pending spheron is: null
-systemTick: 38
-our pending spheron is: null
-systemTick: 39
-our pending spheron is: null
-systemTick: 40
-our pending spheron is: null
-systemTick: 41
-our pending spheron is: null
-systemTick: 42
-our pending spheron is: null
-systemTick: 43
-our pending spheron is: null
-systemTick: 44
-our pending spheron is: null
-
-handling SIGINT
-
+our pending spheron is: {"_id":"5bd240808b5fcc7444dd7a20","spheronId":"inputSpheron1","type":"spheron","state":"pending","io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":-1},{"id":"bias1","type":"bias","angle":20,"val":-1},{"id":"bias1a","type":"bias","angle":24,"val":-1},{"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1","val":-1}],"inputMessageQueue":{"1":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"}],"variant":[]}},"2":{"sigId-234567890":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1","testIdx":1,"val":0,"isVariant":false,"sigId":"234567890"}],"variant":[]}}},"variantMaps":[["bias1","bias1a"]],"propogationMessageQueue":{"timestamp-2":{"sigId-123456789":{"nonVariant":[],"variant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}]}},"timestamp-3":{"sigId-234567890":{"nonVariant":[],"variant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"234567890"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"234567890"}]}}},"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"variantErrorMaps":[{"bias1":[1,null,null,null],"bias1a":[0.3,null,null,null]}],"problemId":"whatIsAnd"}
+we loaded a spheron: {"_id":"5bd240808b5fcc7444dd7a20","spheronId":"inputSpheron1","type":"spheron","state":"pending","io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":-1},{"id":"bias1","type":"bias","angle":20,"val":-1},{"id":"bias1a","type":"bias","angle":24,"val":-1},{"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1","val":-1}],"inputMessageQueue":{"1":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"}],"variant":[]}},"2":{"sigId-234567890":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1","testIdx":1,"val":0,"isVariant":false,"sigId":"234567890"}],"variant":[]}}},"variantMaps":[["bias1","bias1a"]],"propogationMessageQueue":{"timestamp-2":{"sigId-123456789":{"nonVariant":[],"variant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"123456789"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"123456789"}]}},"timestamp-3":{"sigId-234567890":{"nonVariant":[],"variant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","isVariant":true,"testIdx":0,"val":1,"sigId":"234567890"},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1","isVariant":true,"testIdx":0,"val":0.3,"sigId":"234567890"}]}}},"bpErrorMessageQueue":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":1},{"problemId":"whatIsAnd","path":"input1;bias1a;internal1;input2;internal2;ANDout","isVariant":true,"testIdx":0,"sigId":"123456789","error":0.3}],"variantErrorMaps":[{"bias1":[1,null,null,null],"bias1a":[0.3,null,null,null]}],"problemId":"whatIsAnd"}
+performing activation and propagation functions.
+Phase0: should we mutate?
+Phase1: lets handle input queues and activation?
+in input queue iterator
+oldest message in queue: 1
+system Tick: 1
+true
+we found messages in the inputQueue which are older than our current tick and therefore eligible for processing.
+{ 'sigId-123456789': { nonVariant: [ [Object], [Object] ], variant: [] } }
+we found sigId: sigId-123456789 within timestamp: 1
+we are going to update: input1
+we updated the input...
+deleted message from the nonVariant queue. 
+running activate
+in the spherons activate function
+[ 0, 0 ]
+[ 0, 0 ]
+[ -0.9397, -0.34203 ]
+[ -1.85325, -0.7487699999999999 ]
+-1.57508
+-1.57508
+activation result (internal): {"internal1":-1.57508}
+calling back from spherons activate function
+{ internal1: -1.57508 }
+activated
+{ 'sigId-123456789': { nonVariant: [ [Object] ], variant: [] } }
+we found sigId: sigId-123456789 within timestamp: 1
+we are going to update: input1
+we updated the input...
+deleted message from the nonVariant queue. 
+running activate
+in the spherons activate function
+[ 0, 0 ]
+[ 0, 0 ]
+[ -0.9397, -0.34203 ]
+[ -1.85325, -0.7487699999999999 ]
+-1.57508
+-1.57508
+activation result (internal): {"internal1":-1.57508}
+calling back from spherons activate function
+{ internal1: -1.57508 }
+activated
+{ 'sigId-123456789': { nonVariant: [], variant: [] } }
+oldest message in queue: 1
+system Tick: 1
+true
+we found messages in the inputQueue which are older than our current tick and therefore eligible for processing.
+undefined
