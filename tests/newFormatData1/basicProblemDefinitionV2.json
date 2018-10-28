@@ -18,7 +18,6 @@
 				"1": {
 					"sigId-123456789":{
 						"nonVariant":[
-							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 0, "isVariant": false, "sigId" : "123456789" },
 							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 0, "isVariant": false, "sigId" : "123456789" }
 						],
 						"variant": [
@@ -40,24 +39,6 @@
 				["bias1", "bias1a"]
 			],
 			"propogationMessageQueue": {
-				"timestamp-2": {
-					"sigId-123456789":{
-						"nonVariant":[],
-						"variant": [
-							{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1", "isVariant": true, "testIdx": 0, "val": 1, "sigId" : "123456789"},
-							{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1", "isVariant": true, "testIdx": 0, "val": 0.3, "sigId" : "123456789"}
-						]
-					}
-				},
-				"timestamp-3": {
-					"sigId-234567890":{
-						"nonVariant":[],
-						"variant": [
-							{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1", "isVariant": true, "testIdx": 0, "val": 1, "sigId" : "234567890"},
-							{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1", "isVariant": true, "testIdx": 0, "val": 0.3, "sigId" : "234567890"}
-						]
-					}
-				}
 			}, 
 			"bpErrorMessageQueue" : [
 				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 1},

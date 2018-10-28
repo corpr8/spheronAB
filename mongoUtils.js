@@ -10,7 +10,7 @@ var mongoNet = [];
 
 /*
 * A way to persist Spherons and connections out to mongo
-*/
+*/ 
 
 var mongoUtils = {
 	init: function(callback){
@@ -110,7 +110,7 @@ var mongoUtils = {
 	createSpheronFromArrayIterator: function(idx, problemDescription, callback){
 		var that = this
 		if(idx < (problemDescription.network).length){
-			console.log(JSON.stringify(problemDescription.network[idx]))
+			//console.log(JSON.stringify(problemDescription.network[idx]))
 			var thisSpheron = problemDescription.network[idx]
 			thisSpheron.problemId = problemDescription.problemId
 			mongoNet.insertOne(thisSpheron, function(err, res) {
@@ -172,7 +172,7 @@ var mongoUtils = {
 						doc.stateTickStamp = updateJSON.stateTickStamp
 					}
 
-					console.log('updated doc is: ' + JSON.stringify(doc))
+					//console.log('updated doc is: ' + JSON.stringify(doc))
 					mongoNet.updateOne({"spheronId" : spheronId },{$set:doc}, function(doc){
 						process.nextTick(function(){
 							callback()	

@@ -17,8 +17,12 @@ var Spheron = function (config) {
 	
 	this.signalVector = {}
 	this.signalTrace = []
-	this.stateTickStamp = 0
 	this.state = 'idle'
+	
+
+	this.signalId = (config.signalId) ? config.signalId : {}
+
+
 	this.spheronId =  (config.spheronId) ? config.spheronId : "missing" 
 	//optional
 	this.problemId = (config.problemId) ? config.problemId : -1 //a global id for the problem that this spheron is trying to solve.
@@ -26,19 +30,15 @@ var Spheron = function (config) {
 	this.testIdx = (config.testIdx) ? config.testIdx : -1 //if we are running a testl what is our current testIdx?
 	this.trainingMode = (config.trainingMode) ? config.trainingMode : true //do we actually want to back propagate and evolve? (true)
 	this.inputMessageQueue = (config.inputMessageQueue) ? config.inputMessageQueue : [] //activation messsages which are passed to this spheron
-	this.exclusionMaps = (config.exclusionMaps) ? config.exclusionMaps : [] //details of ab tests i.e [["bias1", "bias1a", "bias1b"]]
+	this.variantMaps = (config.variantMaps) ? config.variantMaps : [] //details of ab tests i.e [["bias1", "bias1a", "bias1b"]]
 	this.propogationMessageQueue = (config.propogationMessageQueue) ? config.propogationMessageQueue : [] //messages waiting to be passed downstream
 	this.bpErrorMessageQueue = (config.bpErrorMessageQueue) ? config.bpErrorMessageQueue : [] //backpropped messages waiting to be processed and passed upstream
 	this.exclusionErrorMaps = (config.exclusionErrorMaps) ? config.exclusionErrorMaps : [] //Here we will maintain our understanding of the performance of different variants
 	this.options = (config.options) ? config.options : {}
+	this.path = (config.path) ? config.path : ""
 
 	this.exclusions = (config.exclusions) ? config.exclusions : []
 };
-
-Spheron.prototype._calculateSignalTraces = function(){
-	//TODO: Write the back propagation of signaltraces across this spheron in the form: [Inputs].[Biases].[Outputs] - which should be recursive...
-	return
-}
 
 Spheron.prototype.calculateSignalVector = function(){
 	/*
@@ -89,11 +89,12 @@ Spheron.prototype.updateExclusions = function(exclusions){
 	/*
 	* setter for exclusions - should take an array of id's to exclude from proessing.
 	*/
+	console.log('exclusions: ' + exclusions)
 	if(exclusions){
-		if(Array.isArray(exlusions)){
+		if(Array.isArray(exclusions)){
 			this.exclusions = exclusions
 		} else {
-			console.log("sorry but 'exclusions' should contain an array of id's to be exclude from activation.")
+			this.exclusions = exclusions.split(',')
 		}
 	}
 	return
@@ -110,20 +111,17 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	* This is useful for propagating signals which are part of an A/B test.
 	* update input values - in this instance.
 	*/
+	var that = this
 
-	//console.log('this spherons connections: ' + JSON.stringify(this.io))
-	//console.log('this spherons signaltrace:' + this.signalTrace)
 	console.log('in the spherons activate function')
 	if(inputSignals){
 		this.updateInputs(inputSignals)	
 	}
 
 	if(exclusions){
+		console.log('updating exclusions with:' + exclusions)
 		this.updateExclusions(exclusions)	
 	}
-
-	//console.log('calculate signal traces')
-	//this._calculateSignalTraces()
 
 	this.calculateSignalVector()
 	var thisResults = {}
@@ -133,42 +131,67 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	*/
 
 	for(var key in this.io) {
-		//console.log(this.io[key])
+		console.log('examining connection: ' + JSON.stringify(this.io[key]))
 		var thisConn = this.io[key]
 		
 		var excludeThis = false
+		console.log('exclusions: ' +  this.exclusions)
 		for(var excludeId in this.exclusions){
-			if(key == excludeId){
+			console.log('---')
+			console.log(this.io[key].id)
+			console.log(this.exclusions[excludeId])
+			console.log('---')
+			if(this.io[key].id == this.exclusions[excludeId]){
 				excludeThis = true
 			}
 		}
 
-		if((thisConn.type == 'output' || thisConn.type == 'extOutput') && excludeThis == false){
-			//find signalVector as a polar angle
-			var signalVectorHeading = heading(this.signalVector,[0,0])
-			var outputHeading = thisConn.angle * degToRad
-			var outputAmp = Math.cos(Math.abs(signalVectorHeading - outputHeading))
-			var outputFinal = Math.floor((mag(this.signalVector) * outputAmp) * 100000)/100000
+		if(excludeThis == false){
+			thisResults[this.io[key].id] = (thisResults[this.io[key].id]) ? thisResults[this.io[key].id] : {}
+			thisConn.path = (thisConn.path) ? thisConn.path : thisConn.id
+			thisResults[this.io[key].id].path = (thisResults[this.io[key].id].path) ? thisConn.id : thisResults[this.io[key].id].path + ';' + thisConn.id
 
-			thisConn.val = outputFinal
-			console.log(thisConn.val)
+			if(thisConn.type == 'output' || thisConn.type == 'extOutput'){
+				
+				//find signalVector as a polar angle
+				var signalVectorHeading = heading(this.signalVector,[0,0])
+				var outputHeading = thisConn.angle * degToRad
+				var outputAmp = Math.cos(Math.abs(signalVectorHeading - outputHeading))
+				var outputFinal = Math.floor((mag(this.signalVector) * outputAmp) * 100000)/100000
 
-			/*
-			* now apply any output flattening function
-			*/
-			thisConn.val = this._runOutputFn(thisConn)
-			console.log(thisConn.val)
-			//this.io[key].id = thisConn.val
-			thisResults[this.io[key].id] = thisConn.val
+				thisConn.val = outputFinal
+				console.log(thisConn.val)
+
+				/*
+				* now apply any output flattening function
+				*/
+				thisConn.val = this._runOutputFn(thisConn)
+				console.log(thisConn.val)
+				thisResults[this.io[key].id].val = thisConn.val
+
+
+
+				/*
+				* write this to the output - so the runner can write it to the output Queue (it has access to wider data...)
+				*/
+				
+				//.propogationMessageQueue[systemTick][] = (that.propogationMessageQueue[systemTick]) ? that.propogationMessageQueue[systemTick] : {}
+			}
+
+			console.log('this path: ' + thisConn.path)
+			console.log('this derived path: ' + thisResults.path)
+		} else {
+			console.log('we excluded: ' + thisConn.id)
 		}
+		excludeThis = false
 	}
 	console.log('activation result (internal): ' + JSON.stringify(thisResults))
 	this.state = 'idle'
 	if(callback){
-		console.log('calling back from spherons activate function')
+		console.log('calling back from spherons activate function - with these results: ' +  JSON.stringify(thisResults))
 		callback(thisResults)
 	} else {
-		console.log('returning from spherons activate function')
+		console.log('returning from spherons activate function - with the result: ' +  JSON.stringify(thisResults))
 		return thisResults
 	}
 }
@@ -194,7 +217,7 @@ Spheron.prototype._runOutputFn = function(thisConn){
 				thisConn.val = 1 / (1 + Math.exp(-thisConn.val))
 				//*** end To be verified ***
 			} else {
-				console.log('output function not handled as yet. Please code it.')
+				console.log('output function not handled as yet. Please code it. ')
 			}
 
 		}
