@@ -155,11 +155,7 @@ var mongoUtils = {
 					if(updateJSON.io){
 						for (var port in updateJSON.io) {
 						    for (var setting in updateJSON.io[port]) {
-						    	//console.log(doc.io)
-						    	//console.log(port)
 						    	if(doc.io[port]){
-							    	//console.log(doc.io[port][setting])
-							    	//console.log(updateJSON.io[port][setting])
 							    	doc.io[port][setting] = updateJSON.io[port][setting]
 						    	}
 						    }
@@ -182,13 +178,12 @@ var mongoUtils = {
 					callback()
 				}					
 			}).then(function(){
-			if(hadDocuments == false){
-				console.log('had documents:' + hadDocuments)
-				console.log('weirdly we are here. Is this because of exactly 0 results???')
-				callback()
-			}	
+				if(hadDocuments == false){
+					console.log('had documents:' + hadDocuments)
+					console.log('weirdly we are here. Is this because of exactly 0 results???')
+					callback()
+				}	
 			})
-			
 	},
 	_mutationOperators: {
 		/*

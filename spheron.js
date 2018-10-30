@@ -24,7 +24,7 @@ var Spheron = function (config) {
 	this.trainingMode = (config.trainingMode) ? config.trainingMode : true //do we actually want to back propagate and evolve? (true)
 	this.inputMessageQueue = (config.inputMessageQueue) ? config.inputMessageQueue : [] //activation messsages which are passed to this spheron
 	this.variantMaps = (config.variantMaps) ? config.variantMaps : [] //details of ab tests i.e [["bias1", "bias1a", "bias1b"]]
-	this.propogationMessageQueue = (config.propogationMessageQueue) ? config.propogationMessageQueue : [] //messages waiting to be passed downstream
+	this.propagationMessageQueue = (config.propagationMessageQueue) ? config.propagationMessageQueue : [] //messages waiting to be passed downstream
 	this.bpErrorMessageQueue = (config.bpErrorMessageQueue) ? config.bpErrorMessageQueue : [] //backpropped messages waiting to be processed and passed upstream
 	this.exclusionErrorMaps = (config.exclusionErrorMaps) ? config.exclusionErrorMaps : [] //Here we will maintain our understanding of the performance of different variants
 	this.options = (config.options) ? config.options : {}
@@ -177,8 +177,6 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 			//console.log('we excluded: ' + thisConn.id)
 		}
 	}
-
-	//console.log('activation result (internal): ' + JSON.stringify(thisResults))
 	this.state = 'idle'
 	if(callback){
 		console.log('calling back from spherons activate function - with these results: ' +  JSON.stringify(thisResults))

@@ -94,7 +94,7 @@ var spheron_runner = {
 				* Handle Input Messages and Activation as follows:
 				*
 				* 1: Set any non variant messages as input values to the spheron and delete from queue
-				* if we have variants, set them and call activate individually (setting the correct signal audit) => store the output value on the propogationMessageQueue
+				* if we have variants, set them and call activate individually (setting the correct signal audit) => store the output value on the propagationMessageQueue
 				* else just call activate
 				* Write each activate and unique signal path to propagation que
 		        */
@@ -336,19 +336,23 @@ var spheron_runner = {
 						console.log('In the callback from Activate with this result: ' + JSON.stringify(thisResult))
 
 						//does the timestamp exist in the outputMessageQueue
-						console.log(typeof that.spheron.propogationMessageQueue[(that.systemTick +1)] == 'undefined')
-						that.spheron.propogationMessageQueue[(that.systemTick +1)] = (typeof that.spheron.propogationMessageQueue[(that.systemTick +1)] != 'undefined') ? that.spheron.propogationMessageQueue[(that.systemTick +1)] : {}
+						console.log(typeof that.spheron.propagationMessageQueue[(that.systemTick +1)] == 'undefined')
+						that.spheron.propagationMessageQueue[(that.systemTick +1)] = (typeof that.spheron.propagationMessageQueue[(that.systemTick +1)] != 'undefined') ? that.spheron.propagationMessageQueue[(that.systemTick +1)] : {}
 
 						//create the sigId if it doesnt exist
-						that.spheron.propogationMessageQueue[(that.systemTick +1)][thisSigId] = (typeof that.spheron.propogationMessageQueue[(that.systemTick +1)][thisSigId] != 'undefined') ? that.spheron.propogationMessageQueue[(that.systemTick +1)][thisSigId] : []
+						that.spheron.propagationMessageQueue[(that.systemTick +1)][thisSigId] = (typeof that.spheron.propagationMessageQueue[(that.systemTick +1)][thisSigId] != 'undefined') ? that.spheron.propagationMessageQueue[(that.systemTick +1)][thisSigId] : []
 
 						//add the outputSignal to the queue
 						console.log('thisResult val: ' + JSON.stringify(thisResult))
 
 						//todo: thisResult might contain multiple outputs so we should load them onto the queue separately???
+						for(var thisKey in thisResult){
+							console.log(thisResult[thisKey])
+							that.spheron.propagationMessageQueue[(that.systemTick +1)][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult[thisKey].path, "testIdx": thisResult[thisKey].testIdx, "val": thisResult[thisKey].val, "isVariant": true, "sigId" : thisSigId})
+						}
+						//process.exit()
 
-
-						that.spheron.propogationMessageQueue[(that.systemTick +1)][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult.path, "testIdx": 0, "val": thisResult.val, "isVariant": true, "sigId" : thisSigId})
+						
 
 						testIdx += 1
 						that.activationIterator(mapIdx, testIdx, thisSigId, callback)
