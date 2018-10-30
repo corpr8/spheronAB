@@ -101,6 +101,7 @@ var spheron_runner = {
 		        console.log('Phase1: lets handle input queues and activation?')
 		        that.inputQueueIterator(function(){
 		        	console.log('finished Phase1.')
+		        	console.log('dump: ' + JSON.stringify(that.spheron))
 			        phaseIdx += 1
 				    that.processSpheron(phaseIdx, callback)
 				    
@@ -215,7 +216,7 @@ var spheron_runner = {
 
 						if(((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).length == 0 ||  that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined') && (that.spheron.inputMessageQueue[timestamp][thisSigId].variant).length == 0){
 							//activate immediately - note activate takes care of internal multivariance...
-							that.activate(function(){
+							that.activate(thisSigId, function(){
 								//console.log('activated')
 								that._inputMessageSigIdIterator(timestamp, callback)	
 							})
@@ -232,7 +233,7 @@ var spheron_runner = {
 						//clear the message from the queue.
 						(that.spheron.inputMessageQueue[timestamp][thisSigId].variant).shift()
 						//console.log('deleted the message from the variant queue')
-						that.activate(function(){
+						that.activate(thisSigId, function(){
 							//console.log('activated')
 							that._inputMessageSigIdIterator(timestamp, callback)
 						})
@@ -306,41 +307,56 @@ var spheron_runner = {
 			callback()
 		}
 	},
-	activate: function(callback){
+	activate: function(thisSigId, callback){
 		//call the activate function of this spheron
 		var that = this
-		that.activationIterator(0,0, function(){
+		that.activationIterator(0,0, thisSigId, function(){
 			callback()
 		})
 	},
-	activationIterator:function(mapIdx, testIdx, callback){
+	activationIterator:function(mapIdx, testIdx, thisSigId, callback){
 		//automatically handle internal A/B - i.e. if this spheron has a variantMap then we need to fire for each (exclusively)
 		var that = this
 		//console.log(JSON.stringify(that.spheron))
 		if(that.spheron.variantMaps.length == 0){
 			//console.log('running non-variant activation')
 			that.spheron.activate(null, null, function(thisResult){
-				//console.log(thisResult) 
+				/*
+				* TODO: Write this output onto the message queue
+				*/
 				callback()	
 			})
 		} else {
 			if(mapIdx < that.spheron.variantMaps.length){
 				if(testIdx < that.spheron.variantMaps[mapIdx].length){
 					var exclusionMap = that.spheron.variantMaps[mapIdx]
-					//console.log('old exclusion map: ' + exclusionMap)
 					var v = exclusionMap.slice(0);
 					v.splice(testIdx,1)
-					//console.log('new exclusion map: ' + v)
-					//run activations
 					that.spheron.activate(null, v, function(thisResult){
-						//console.log(thisResult)
+						console.log('In the callback from Activate with this result: ' + JSON.stringify(thisResult))
+
+						//does the timestamp exist in the outputMessageQueue
+						console.log(typeof that.spheron.propogationMessageQueue[(that.systemTick +1)] == 'undefined')
+						that.spheron.propogationMessageQueue[(that.systemTick +1)] = (typeof that.spheron.propogationMessageQueue[(that.systemTick +1)] != 'undefined') ? that.spheron.propogationMessageQueue[(that.systemTick +1)] : {}
+
+						//create the sigId if it doesnt exist
+						that.spheron.propogationMessageQueue[(that.systemTick +1)][thisSigId] = (typeof that.spheron.propogationMessageQueue[(that.systemTick +1)][thisSigId] != 'undefined') ? that.spheron.propogationMessageQueue[(that.systemTick +1)][thisSigId] : []
+
+						//add the outputSignal to the queue
+						console.log('thisResult val: ' + JSON.stringify(thisResult))
+
+						//todo: thisResult might contain multiple outputs so we should load them onto the queue separately???
+
+
+						that.spheron.propogationMessageQueue[(that.systemTick +1)][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult.path, "testIdx": 0, "val": thisResult.val, "isVariant": true, "sigId" : thisSigId})
+
 						testIdx += 1
-						that.activationIterator(mapIdx, testIdx, callback)
+						that.activationIterator(mapIdx, testIdx, thisSigId, callback)
 					})
 				} else {
 					mapIdx += 1
 					testIdx = 0
-					that.activationIterator(mapIdx, testIdx, callback)
+					that.activationIterator(mapIdx, testIdx, thisSigId, callback)
 				}
 			} else {
 				callback()

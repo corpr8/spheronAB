@@ -11,14 +11,14 @@
 			"io": [
 				{"id" : "input1", "type": "extInput", "angle": 0, "fromId": "ext", "val":-1},
 				{"id" : "bias1", "type": "bias", "angle": 20, "val":-1},
-				{"id" : "bias1a", "type": "bias", "angle": 24, "val":-1},
-				{"id" : "internal1", "type": "output", "angle": 60, "toId": "outputSpheron1", "val":-1}
+				{"id" : "bias1a", "type": "bias", "angle": 124, "val":1},
+				{"id" : "internal1", "type": "output", "angle": -60, "toId": "outputSpheron1", "val":-1}
 			],
 			"inputMessageQueue": {
 				"1": {
 					"sigId-123456789":{
 						"nonVariant":[
-							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 0, "isVariant": false, "sigId" : "123456789" }
+							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 1, "isVariant": false, "sigId" : "123456789" }
 						],
 						"variant": [
 							
@@ -71,7 +71,6 @@
 			"variantMaps" : [
 			],
 			"propogationMessageQueue": [
-					{"problemId" : "whatIsAnd", "path" : "input2;internal2", "isVariant": false, "testIdx": 0, "val": -1, "sigId" : "123456789"}
 			],
 			"bpErrorMessageQueue" : [
 
@@ -90,10 +89,7 @@
 			"inputMessageQueue": {},
 			"variantMaps" : [
 			],			
-			"propogationMessageQueue": [
-				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "val": 1, "sigId" : "123456789"},
-				{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "val": 0.3, "sigId" : "123456789"}
-			],
+			"propogationMessageQueue": [],
 			"bpErrorMessageQueue" : [
 				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 1},
 				{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 0.3}
