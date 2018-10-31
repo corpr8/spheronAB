@@ -38,7 +38,7 @@
 			"variantMaps" : [
 				["bias1", "bias1a"]
 			],
-			"propogationMessageQueue": {
+			"propogationMessageQueue": { 
 			}, 
 			"bpErrorMessageQueue" : [
 				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 1},

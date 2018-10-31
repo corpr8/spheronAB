@@ -96,7 +96,7 @@ var spheron_runner = {
 				* 1: Set any non variant messages as input values to the spheron and delete from queue
 				* if we have variants, set them and call activate individually (setting the correct signal audit) => store the output value on the propagationMessageQueue
 				* else just call activate
-				* Write each activate and unique signal path to propagation que
+				* Write each activate and unique signal path to propagation que 
 		        */
 		        console.log('Phase1: lets handle input queues and activation?')
 		        that.inputQueueIterator(function(){
@@ -210,8 +210,6 @@ var spheron_runner = {
 						console.log('we updated the input...')
 						//clear the message from the queue.
 						that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.splice(0,1)
-						
-
 						//console.log('deleted message from the nonVariant queue. ')
 
 						if(((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).length == 0 ||  that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined') && (that.spheron.inputMessageQueue[timestamp][thisSigId].variant).length == 0){
@@ -327,6 +325,7 @@ var spheron_runner = {
 				callback()	
 			})
 		} else {
+			var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()
 			if(mapIdx < that.spheron.variantMaps.length){
 				if(testIdx < that.spheron.variantMaps[mapIdx].length){
 					var exclusionMap = that.spheron.variantMaps[mapIdx]
@@ -334,26 +333,13 @@ var spheron_runner = {
 					v.splice(testIdx,1)
 					that.spheron.activate(null, v, function(thisResult){
 						console.log('In the callback from Activate with this result: ' + JSON.stringify(thisResult))
-
-						//does the timestamp exist in the outputMessageQueue
-						console.log(typeof that.spheron.propagationMessageQueue[(that.systemTick +1)] == 'undefined')
-						that.spheron.propagationMessageQueue[(that.systemTick +1)] = (typeof that.spheron.propagationMessageQueue[(that.systemTick +1)] != 'undefined') ? that.spheron.propagationMessageQueue[(that.systemTick +1)] : {}
-
-						//create the sigId if it doesnt exist
-						that.spheron.propagationMessageQueue[(that.systemTick +1)][thisSigId] = (typeof that.spheron.propagationMessageQueue[(that.systemTick +1)][thisSigId] != 'undefined') ? that.spheron.propagationMessageQueue[(that.systemTick +1)][thisSigId] : []
-
-						//add the outputSignal to the queue
-						console.log('thisResult val: ' + JSON.stringify(thisResult))
-
-						//todo: thisResult might contain multiple outputs so we should load them onto the queue separately???
+						that.spheron.propagationMessageQueue[systemTickPlusOne] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne] : {}
+						that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] : []
 						for(var thisKey in thisResult){
-							console.log(thisResult[thisKey])
-							that.spheron.propagationMessageQueue[(that.systemTick +1)][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult[thisKey].path, "testIdx": thisResult[thisKey].testIdx, "val": thisResult[thisKey].val, "isVariant": true, "sigId" : thisSigId})
+							that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult[thisKey].path, "testIdx": thisResult[thisKey].testIdx, "val": thisResult[thisKey].val, "isVariant": true, "sigId" : thisSigId})
+							console.log(that.spheron.problemId)
 						}
-						//process.exit()
-
-						
-
+						console.log(that.spheron.propagationMessageQueue[systemTickPlusOne])
 						testIdx += 1
 						that.activationIterator(mapIdx, testIdx, thisSigId, callback)
 					})
