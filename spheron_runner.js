@@ -20,7 +20,7 @@ var spheron_runner = {
 		var that = this
 		mongoUtils.init(function(){
 			if(that.loadDemoData == true){
-				var testData = require('./tests/newFormatData1/basicProblemDefinitionV2.json')
+				var testData = require('./tests/newFormatData1/basicProblemDefinitionV2-nonVariant.json')
 				mongoUtils.setupDemoData(testData, function(){
 					that.startTicking()
 					callback()
@@ -111,6 +111,15 @@ var spheron_runner = {
 				/*
 				* Handle propagation to downstream spherons...
 				*/
+				console.log('Phase2: propagate results to downstream spherons')
+				that.propagationQueueIterator(function(){
+					console.log('finished Phase2')
+					console.log('dump: ' + JSON.stringify(that.spheron))
+			        phaseIdx += 1
+
+			        process.exit()
+				    that.processSpheron(phaseIdx, callback)
+				})
 				break;
 			case 3:
 		        /*
@@ -156,6 +165,90 @@ var spheron_runner = {
 		    			callback()	
 		    		})
 		    	}
+		}
+	},
+	propagationQueueIterator: function(callback){
+		var that = this
+		console.log('in propagationQueueIterator')
+		that._propagationQueueAgeIterator(function(){
+			callback()
+		})
+	},
+	_propagationQueueAgeIterator: function(callback){
+		var that = this
+		if(Object.keys(that.spheron.propagationMessageQueue)[0]){
+			var thisTimestamp = (Object.keys(that.spheron.inputMessageQueue)[0]).toString()
+			console.log('ageQueueIdx0: ' + thisTimestamp)
+			that._propagationQueueSigIterator(thisTimestamp, function(){
+				that.spheron.inputMessageQueue[thisTimestamp] = undefined
+				that._propagationQueueAgeIterator(callback)
+			})
+		} else {
+			callback()
+		}
+	},
+	_propagationQueueSigIterator: function(thisTimestamp, callback){
+		/*
+		* TODO: Iterate signalId's within a given timestamp of the propagationQueue
+		*/
+		var that = this
+		console.log('timestamp is: ' + thisTimestamp)
+		if(Object.keys((that.spheron.propagationMessageQueue)[thisTimestamp])[0]){
+			var thisSigId = Object.keys(that.spheron.propagationMessageQueue[thisTimestamp])[0]
+
+			console.log(thisSigId)
+			console.log((that.spheron.propagationMessageQueue[thisTimestamp])[thisSigId])
+
+			if((that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]).length > 0){
+				//propagate the message.
+				that._propagateMessage(thisTimestamp, that.spheron.propagationMessageQueue[thisTimestamp][thisSigId][0], function(){
+					console.log('iterating')
+					that._propagationQueueSigIterator(thisTimestamp, callback)
+				})	
+			} else {
+				that.spheron.propagationMessageQueue[thisTimestamp][thisSigId] = null
+				that._propagationQueueSigIterator(thisTimestamp, callback)
+			}
+		} else {
+			callback()
+		}
+	},
+	_propagateMessage: function(thisTimestamp, thisMessage, callback){
+		var that = this
+		/*
+		* TODO:
+		* 1) get tail of path to find the specific output / input connection
+		* 1a) find connection with id in the tail of the path. Find destination spheron.
+		* 2) load (but don't run) - that spheron
+		* 3) push this message onto it's input queue
+		* 3a) if the input is multi-variant then push it there as well...
+		* 4) change its state to pending
+		* 5) save other spheron
+		* 6) remove message from output queue
+		*/
+
+		console.log('propagating: ' + JSON.stringify(thisMessage))
+		var thisPathTail = that._getPathTail(thisMessage.path)
+		console.log('thisPath tail is: ' + thisPathTail)
+		that._getConnectionDestinationByConectionId(0, thisPathTail, function(destinationSpheron){
+			console.log('destinationSpheron is: ' + destinationSpheron)	
+			process.exit()
+		})
+	},
+	_getPathTail: function(thisPath){
+		return thisPath.split(';')[thisPath.split(';').length -1]
+	},
+	_getConnectionDestinationByConectionId: function(idx, targetConnId, callback){
+		var that = this
+		if(that.spheron.io[idx]){
+			if(that.spheron.io[idx].id == targetConnId){
+				callback(that.spheron.io[idx].toId)
+			} else {
+				idx += 1
+				that._getConnectionDestinationByConectionId(idx,targetConnId,callback)
+			}
+		} else {
+			callback()
 		}
 	},
 	inputQueueIterator: function(callback){
@@ -272,7 +365,6 @@ var spheron_runner = {
 	_getSigIdFromMessageQueue: function(timestamp, callback){
 		var that = this
 		if(that.spheron.inputMessageQueue[timestamp]){
-			//console.log(that.spheron.inputMessageQueue[timestamp])
 			var thisSigId = Object.keys(that.spheron.inputMessageQueue[timestamp])[0]
 			if(((that.spheron.inputMessageQueue[timestamp][thisSigId]).nonVariant).length > 0  && typeof that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined' ){
 				callback(thisSigId)
@@ -285,8 +377,6 @@ var spheron_runner = {
 	},
 	_getOldestTickFromMessageQueue: function(){
 		var that = this
-		//console.log('diag:' + Object.keys(that.spheron.inputMessageQueue))
-		//console.log(that.spheron.inputMessageQueue[1])
 		return (Object.keys(that.spheron.inputMessageQueue)[0])
 	},
 	_removeNonVariantIterator: function(idx,callback){
@@ -320,9 +410,25 @@ var spheron_runner = {
 			//console.log('running non-variant activation')
 			that.spheron.activate(null, null, function(thisResult){
 				/*
-				* TODO: Write this output onto the message queue
+				* Write this output onto the message queue - not tested
 				*/
-				callback()	
+
+				console.log('In the non variant callback from Activate with this result: ' + JSON.stringify(thisResult))
+				var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()
+				that.spheron.propagationMessageQueue[systemTickPlusOne] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne] : {}
+				that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] : []
+				for(var thisKey in thisResult){
+					thisResult[thisKey].isVariant = (thisResult[thisKey].isVariant) ? thisResult[thisKey].isVariant : false
+					that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult[thisKey].path, "testIdx": thisResult[thisKey].testIdx, "val": thisResult[thisKey].val, "isVariant": thisResult[thisKey].isVariant, "sigId" : thisSigId})
+					console.log(that.spheron.problemId)
+				}
+				console.log(that.spheron.propagationMessageQueue[systemTickPlusOne])
+				callback()
+
+				/*
+				* end new.
+				*/
+
 			})
 		} else {
 			var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()

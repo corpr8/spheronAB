@@ -50,7 +50,7 @@ var mongoUtils = {
 	    	if (err) throw err;
 	    	callback(result)
 		});
-	},
+	}, 
 	getSpheron: function(id, callback){
 		mongoNet.findOne({
 			type: "spheron",

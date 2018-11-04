@@ -168,8 +168,11 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 				thisConn.val = that._runOutputFn(thisConn)
 				thisResults[that.io[key].id].val = thisConn.val
 
-				console.log(JSON.stringify(that.problemId))
+				console.log(JSON.stringify('***' + JSON.stringify(thisConn)))
 				thisResults[that.io[key].id].problemId = thisConn.problemId
+
+				/*does not work currently*/
+				thisResults[that.io[key].id].isVariant = thisConn.isVariant
 			}
 		} else {
 			//console.log('we excluded: ' + thisConn.id)
@@ -210,7 +213,7 @@ Spheron.prototype._runOutputFn = function(thisConn){
 			}
 		}
 	}
-	return thisConn.val
+	return thisConn.val 
 }
 
 Spheron.prototype._p2c = function(r, theta){return [(Math.floor((r * Math.cos(theta)) * 100000))/100000, (Math.floor((r * Math.sin(theta)) * 100000))/100000]}

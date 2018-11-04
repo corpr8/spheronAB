@@ -1,0 +1,105 @@
+{
+	"note" : "basic problem definiton - fully interconnected network with AND Model test plan",
+	"problemId" : "whatIsAnd",
+	"options":{
+		"timeout": 10
+	},
+	"network" : [
+		{"spheronId": "inputSpheron1",
+			"type" : "spheron",
+			"state" : "pending",
+			"io": [
+				{"id" : "input1", "type": "extInput", "angle": 0, "fromId": "ext", "val":-1},
+				{"id" : "bias1", "type": "bias", "angle": 20, "val":-1},
+				{"id" : "internal1", "type": "output", "angle": -60, "toId": "outputSpheron1", "val":-1}
+			],
+			"inputMessageQueue": {
+				"1": {
+					"sigId-123456789":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 1, "isVariant": true, "sigId" : "123456789" }
+						],
+						"variant": [
+							
+						]
+					}
+				},
+				"2": {
+					"sigId-234567890":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 1, "val": 0, "isVariant": false, "sigId" : "234567890" }
+						],
+						"variant": []
+					}
+				}
+				
+			},
+			"variantMaps" : [
+			],
+			"propogationMessageQueue": { 
+			}, 
+			"bpErrorMessageQueue" : [
+				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 1},
+				{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 0.3}
+			],
+			"variantErrorMaps" : [
+				{
+					"bias1":[ 1, null, null, null],
+					"bias1a":[0.3, null, null, null]
+				}
+			]
+		},
+		{"spheronId": "inputSpheron2",
+			"type" : "spheron",
+			"state" : "idle",
+			"io": [
+				{"id" : "input2", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+				{"id" : "internal2", "type": "output", "angle": 60, "val": -1, "toId": "outputSpheron1"}
+			],
+			"inputMessageQueue": {
+				"1": {
+					"sigId-123456789":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input2", "testIdx": 0, "val": 0, "isVariant": false, "sigId" : "123456789" }
+						],
+						"variant": []
+					}
+				}
+			},
+			"variantMaps" : [
+			],
+			"propogationMessageQueue": [
+			],
+			"bpErrorMessageQueue" : [
+
+			],
+			"variantErrorMaps" : [
+			]
+		},
+		{"spheronId": "outputSpheron1",
+			"type" : "spheron",
+			"state" : "idle",
+			"io": [
+				{"id" : "internal1", "type": "input", "angle": 0, "val": 0, "fromId": "inputSpheron1"},
+				{"id" : "internal2", "type": "input", "angle": 0, "val": 0, "fromId": "inputSpheron2"},
+				{"id" : "ANDout", "type": "extOutput", "angle": 60, "val": -1, "toId": "ext", "outputFn" : {"mode": "eq", "val": 1, "ignoreWhileTrain": true}}
+			],
+			"inputMessageQueue": {}, 
+			"variantMaps" : [
+			],			
+			"propogationMessageQueue": [],
+			"bpErrorMessageQueue" : [
+				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 1},
+				{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 0.3}
+			],
+			"variantErrorMaps" : [
+			]
+		}
+	],
+	"tests" : [
+		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 0}, "spheron": "inputSpheron2", "input2": {"val": 0}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 0}}},
+		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 0}, "spheron": "inputSpheron2", "input2": {"val": 1}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 0}}},
+		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 1}, "spheron": "inputSpheron2", "input2": {"val": 0}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 0}}},
+		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 1}, "spheron": "inputSpheron2", "input2": {"val": 1}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 1}}}
+	]
+}
