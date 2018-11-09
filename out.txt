@@ -4,79 +4,140 @@ sample spherons created.
 init complete
 systemTick: 1
 runtime functions.
+Begin Processing a Spheron. Tick is: 1 spheron id is: inputSpheron1
 Phase0: should we mutate?
 Phase1: lets handle input queues and activation?
 in input queue iterator
 oldest message in queue: 1
 system Tick: 1
-our updatemessage is: {"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"}
-updated connection: {"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":0,"sigId":"123456789","path":"input1","isVariant":false,"problemId":"whatIsAnd","testIdx":0}
+our updatemessage is: {"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":1,"isVariant":true,"sigId":"123456789"}
+updated connection: {"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0}
 we updated the input...
-in the spherons activate function
-updating exclusions with:bias1a
-exclusions: bias1a
-[ 0, 0 ]
-[ 0, 0 ]
-[ -0.9397, -0.34203 ]
-[ -1.85325, -0.7487699999999999 ]
-examining connection: {"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":0,"sigId":"123456789","path":"input1","isVariant":false,"problemId":"whatIsAnd","testIdx":0}
-exclusions: bias1a
-0 0
-we excluded: input1
-examining connection: {"id":"bias1","type":"bias","angle":20,"val":-1}
-exclusions: bias1a
-1 0
-this path: bias1
-this derived path: undefined
-examining connection: {"id":"bias1a","type":"bias","angle":24,"val":-1}
-exclusions: bias1a
-2 0
-this path: bias1a
-this derived path: undefined
-examining connection: {"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1","val":-1}
-exclusions: bias1a
-3 0
--1.57508
--1.57508
-this path: internal1
-this derived path: undefined
-activation result (internal): {"bias1":{"path":"undefined;bias1"},"bias1a":{"path":"undefined;bias1a"},"internal1":{"path":"undefined;internal1","val":-1.57508}}
-calling back from spherons activate function - with these results: {"bias1":{"path":"undefined;bias1"},"bias1a":{"path":"undefined;bias1a"},"internal1":{"path":"undefined;internal1","val":-1.57508}}
-in the spherons activate function
-updating exclusions with:bias1
-exclusions: bias1
-[ 0, 0 ]
-[ 0, 0 ]
-[ -0.9397, -0.34203 ]
-[ -1.85325, -0.7487699999999999 ]
-examining connection: {"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":0,"sigId":"123456789","path":"input1","isVariant":false,"problemId":"whatIsAnd","testIdx":0}
-exclusions: bias1
-0 0
-we excluded: input1
-examining connection: {"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"}
-exclusions: bias1
-1 0
-this path: bias1
-this derived path: undefined
-examining connection: {"id":"bias1a","type":"bias","angle":24,"val":-1,"path":"bias1a"}
-exclusions: bias1
-2 0
-this path: bias1a
-this derived path: undefined
-examining connection: {"id":"internal1","type":"output","angle":60,"toId":"outputSpheron1","val":-1.57508,"path":"internal1"}
-exclusions: bias1
-3 0
--1.57508
--1.57508
-this path: internal1
-this derived path: undefined
-activation result (internal): {"bias1":{"path":"undefined;bias1"},"bias1a":{"path":"undefined;bias1a"},"internal1":{"path":"undefined;internal1","val":-1.57508}}
-calling back from spherons activate function - with these results: {"bias1":{"path":"undefined;bias1"},"bias1a":{"path":"undefined;bias1a"},"internal1":{"path":"undefined;internal1","val":-1.57508}}
+"***{\"id\":\"internal1\",\"type\":\"output\",\"angle\":-60,\"toId\":\"outputSpheron1\",\"val\":0.32635,\"path\":\"internal1\"}"
+calling back from spherons activate function - with these results: {"internal1":{"path":"input1;bias1;internal1","val":0.32635}}
+In the non variant callback from Activate with this result: {"internal1":{"path":"input1;bias1;internal1","val":0.32635}}
+whatIsAnd
+{ 'sigId-123456789': 
+   [ { problemId: 'whatIsAnd',
+       path: 'input1;bias1;internal1',
+       testIdx: undefined,
+       val: 0.32635,
+       isVariant: false,
+       sigId: 'sigId-123456789' } ] }
 oldest message in queue: 2
 system Tick: 1
 no processing to be done within the inputMessageQueue
 we returned from our inputMessageQueueAgeIterator
 finished Phase1.
+dump: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{"2":{"sigId-234567890":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1","testIdx":1,"val":0,"isVariant":false,"sigId":"234567890"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":{"2":{"sigId-123456789":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+Phase2: propagate results to downstream spherons
+in propagationQueueIterator
+false
+ageQueueIdx0: 2
+timestamp is: 2
+sigId-123456789
+[ { problemId: 'whatIsAnd',
+    path: 'input1;bias1;internal1',
+    testIdx: undefined,
+    val: 0.32635,
+    isVariant: false,
+    sigId: 'sigId-123456789' } ]
+propagating: {"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}
+thisPath tail is: internal1
+destinationSpheron is: outputSpheron1
+thisSpheron: {"_id":"5be5b79ae450fc13dc777956","spheronId":"outputSpheron1","type":"spheron","state":"idle","io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+about to persist: {"_id":"5be5b79ae450fc13dc777956","spheronId":"outputSpheron1","type":"spheron","state":"pending","io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+about to persist spheron: outputSpheron1
+update JSON is: {"_id":"5be5b79ae450fc13dc777956","spheronId":"outputSpheron1","type":"spheron","state":"pending","io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+propagated queue item...
+Deleting message
+propagation que length for this sigId is 0
+in _propagationQueueSigIterator callback
+finished Phase2
+dump: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{"2":{}},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+Phase3: handling backprop messages
+Phase4: handle multi-variant resolution
+Phase5: persisting this spheron back to mongo...
+in default phase handler (i.e,. the fallback.) - phase is: 6
+about to persist spheron: inputSpheron1
+update JSON is: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{"2":{}},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+timestamp is: 2
+sigId-123456789
+undefined
+there is nothing within this timestamp...
+in _propagationQueueSigIterator callback
+finished Phase2
+dump: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+Phase4: handle multi-variant resolution
+Phase5: persisting this spheron back to mongo...
+in default phase handler (i.e,. the fallback.) - phase is: 6
+about to persist spheron: inputSpheron1
+update JSON is: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+systemTick: 1
+runtime functions.
+Begin Processing a Spheron. Tick is: 1 spheron id is: outputSpheron1
+Phase0: should we mutate?
+Phase1: lets handle input queues and activation?
+in input queue iterator
+oldest message in queue: 2
+system Tick: 1
+no processing to be done within the inputMessageQueue
+we returned from our inputMessageQueueAgeIterator 
+finished Phase1.
+dump: {"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"signalVector":{},"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+Phase2: propagate results to downstream spherons
+in propagationQueueIterator
+false
+propagationMessageQueue[0] is undefined
+finished Phase2
+dump: {"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"signalVector":{},"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+Phase3: handling backprop messages
+Phase4: handle multi-variant resolution
+Phase5: persisting this spheron back to mongo...
+in default phase handler (i.e,. the fallback.) - phase is: 6
+about to persist spheron: outputSpheron1
+update JSON is: {"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"signalVector":{},"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+systemTick: 1
+systemTick: 2
+systemTick: 3
+systemTick: 4
+systemTick: 5
+systemTick: 6
+systemTick: 7
+systemTick: 8
+systemTick: 9
+systemTick: 10
+systemTick: 11
+systemTick: 12
+systemTick: 13
+systemTick: 14
+systemTick: 15
+systemTick: 16
+systemTick: 17
+systemTick: 18
+systemTick: 19
+systemTick: 20
+systemTick: 21
+systemTick: 22
+systemTick: 23
+systemTick: 24
+systemTick: 25
+systemTick: 26
+systemTick: 27
+systemTick: 28
+systemTick: 29
+systemTick: 30
+systemTick: 31
+systemTick: 32
+systemTick: 33
+systemTick: 34
+systemTick: 35
+systemTick: 36
+systemTick: 37
+systemTick: 38
+systemTick: 39
+systemTick: 40
 
-handling SIGINT
+handling SIGINT
+
 

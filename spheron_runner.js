@@ -51,7 +51,7 @@ var spheron_runner = {
 			* Here we should be checking for pending spherons...
 			*/
 			console.log('systemTick: ' + that.systemTick)
-			mongoUtils.getNextPendingSpheron(function(result){
+			mongoUtils.getNextPendingSpheron(function(result){ 
 				//do tick stuff
 				//do we have a spheron?
 				// --> if so, propagate, backprop signalTraces and check signalTrace set completion...
@@ -76,6 +76,7 @@ var spheron_runner = {
 		var that = this
 		switch(phaseIdx) {
 			case 0:
+				console.log('Begin Processing a Spheron. Tick is: ' + that.systemTick + " spheron id is: " + this.spheron.spheronId)
 		        /*
 				* Should we mutate?
 				*
@@ -116,8 +117,6 @@ var spheron_runner = {
 					console.log('finished Phase2')
 					console.log('dump: ' + JSON.stringify(that.spheron))
 			        phaseIdx += 1
-
-			        process.exit()
 				    that.processSpheron(phaseIdx, callback)
 				})
 				break;
@@ -130,9 +129,13 @@ var spheron_runner = {
 		        * Set the downstream spherons state to pending.
 		        * Then increment phaseIdx and call this function
 		        */
-		        console.log('Phase3: handle backprop messages')
-		        phaseIdx += 1
-		    	this.processSpheron(phaseIdx, callback)
+		        console.log('Phase3: handling backprop messages')
+				that.backpropIterator(function(){
+					//process.exit()
+					phaseIdx += 1
+		    		that.processSpheron(phaseIdx, callback)
+
+				})
 		        break;
 		    case 4:
 		        /*
@@ -151,21 +154,39 @@ var spheron_runner = {
 		        /*
 		        * Persist spheron to mongo.
 		        */
-		        console.log('Phase3: persisting this spheron back to mongo...')
+		        console.log('Phase5: persisting this spheron back to mongo...')
 
 		        phaseIdx += 1
 		    	this.processSpheron(phaseIdx, callback)
 		        break;
 		    default:
-		    	if(phaseIdx <= 4){
+		    console.log('in default phase handler (i.e,. the fallback.) - phase is: ' + phaseIdx)
+		    	if(phaseIdx <= 5){
 		    		phaseIdx += 1
-		    		this.processSpheron(phaseIdx, callback)
+		    		that.processSpheron(phaseIdx, callback)
 		    	} else {
 		    		that.persistSpheron(function(){
+		    			phaseIdx = 0
 		    			callback()	
 		    		})
 		    	}
 		}
+	},
+	backpropIterator: function(callback){
+		/*
+		* If we have messages in the bpErrorMessageQueue
+		* For each message
+		* 1) Iterate inputs and write the message to the spheron on the far end of the input.
+		* 2) Update the variantErrorMaps IF the path is part of the errorMap
+		* 3) Delete the bpErrorMessageQueue item
+		*/
+
+
+
+
+
+
+		callback()
 	},
 	propagationQueueIterator: function(callback){
 		var that = this
@@ -176,14 +197,18 @@ var spheron_runner = {
 	},
 	_propagationQueueAgeIterator: function(callback){
 		var that = this
-		if(Object.keys(that.spheron.propagationMessageQueue)[0]){
+		console.log('Object.keys(that.spheron.propagationMessageQueue)[0] ' +  typeof that.spheron.propagationMessageQueue[0] == undefined)
+		if(Object.keys(that.spheron.propagationMessageQueue)[0] != undefined){
 			var thisTimestamp = (Object.keys(that.spheron.inputMessageQueue)[0]).toString()
 			console.log('ageQueueIdx0: ' + thisTimestamp)
 			that._propagationQueueSigIterator(thisTimestamp, function(){
+				console.log('in _propagationQueueSigIterator callback')
 				that.spheron.inputMessageQueue[thisTimestamp] = undefined
-				that._propagationQueueAgeIterator(callback)
+				//that._propagationQueueAgeIterator(callback)
+				callback()
 			})
 		} else {
+			console.log('propagationMessageQueue[0] is undefined')
 			callback()
 		}
 	},
@@ -193,23 +218,63 @@ var spheron_runner = {
 		*/
 		var that = this
 		console.log('timestamp is: ' + thisTimestamp)
-		if(Object.keys((that.spheron.propagationMessageQueue)[thisTimestamp])[0]){
-			var thisSigId = Object.keys(that.spheron.propagationMessageQueue[thisTimestamp])[0]
+		if(that.spheron.propagationMessageQueue[thisTimestamp]){
+			if(Object.keys((that.spheron.propagationMessageQueue)[thisTimestamp])[0]){
+				var thisSigId = Object.keys(that.spheron.propagationMessageQueue[thisTimestamp])[0]
 
-			console.log(thisSigId)
-			console.log((that.spheron.propagationMessageQueue[thisTimestamp])[thisSigId])
+				console.log(thisSigId)
+				console.log((that.spheron.propagationMessageQueue[thisTimestamp])[thisSigId])
 
-			if((that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]).length > 0){
-				//propagate the message.
-				that._propagateMessage(thisTimestamp, that.spheron.propagationMessageQueue[thisTimestamp][thisSigId][0], function(){
-					console.log('iterating')
-					that._propagationQueueSigIterator(thisTimestamp, callback)
-				})	
+				if(typeof thisSigId != undefined){
+					if(that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]){
+						//if((that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]).length > 0){
+							//propagate the message.
+							that._propagateMessage(thisTimestamp, that.spheron.propagationMessageQueue[thisTimestamp][thisSigId][0], function(){
+								console.log('Deleting message')
+								/*
+								* needs testing...
+								*/
+								that.spheron.propagationMessageQueue[thisTimestamp][thisSigId].shift()
+
+								if(that.spheron.propagationMessageQueue[thisTimestamp][thisSigId].length == 0){
+									console.log('propagation que length for this sigId is 0')
+									that.spheron.propagationMessageQueue[thisTimestamp][thisSigId] = undefined
+									callback()
+								} else if(that.spheron.propagationMessageQueue[thisTimestamp].length == 0 || that.spheron.propagationMessageQueue[thisTimestamp].length == undefined){
+									console.log('propagation que length for this timestamp is 0')
+									that.spheron.propagationMessageQueue[thisTimestamp] = null
+									callback()
+								} else {
+									console.log('propagation que length for ' + thisTimestamp + ' is: ' + that.spheron.propagationMessageQueue[thisTimestamp].length)
+									console.log('dump of propagation queue: ' + JSON.stringify(that.spheron.propagationMessageQueue[thisTimestamp]))
+								}
+
+
+								that._propagationQueueSigIterator(thisTimestamp, callback)
+							})	
+						//} else {
+						//	that.spheron.propagationMessageQueue[thisTimestamp][thisSigId] = null
+						//	that._propagationQueueSigIterator(thisTimestamp, callback)
+						//}
+					} else {
+						console.log('there is nothing within this timestamp...')
+						/*
+						* ok so here is blowing up...
+						*/
+						that.spheron.propagationMessageQueue[thisTimestamp][thisSigId] = undefined
+						that.spheron.propagationMessageQueue[thisTimestamp] = undefined
+						callback()
+						//that._propagationQueueSigIterator(thisTimestamp, callback)
+					}
+				} else {
+					callback()
+				}
 			} else {
-				that.spheron.propagationMessageQueue[thisTimestamp][thisSigId] = null
-				that._propagationQueueSigIterator(thisTimestamp, callback)
+				callback()
 			}
 		} else {
+			console.log('object is not')
+			that.spheron.propagationMessageQueue[thisTimestamp] = undefined
 			callback()
 		}
 	},
@@ -217,22 +282,59 @@ var spheron_runner = {
 		var that = this
 		/*
 		* TODO:
-		* 1) get tail of path to find the specific output / input connection
-		* 1a) find connection with id in the tail of the path. Find destination spheron.
-		* 2) load (but don't run) - that spheron
-		* 3) push this message onto it's input queue
+		* 1) get tail of path to find the specific output / input connection --done
+		* 1a) find connection with id in the tail of the path. Find destination spheron. --done
+		* 2) load (but don't run) - that spheron --done
+		* 3) push this message onto it's input queue --done
 		* 3a) if the input is multi-variant then push it there as well...
-		* 4) change its state to pending
-		* 5) save other spheron
-		* 6) remove message from output queue
+		* 4) change its state to pending --done
+		* 5) save other spheron --done
+		* 6) remove message from output queuem --done
 		*/
 
 		console.log('propagating: ' + JSON.stringify(thisMessage))
-		var thisPathTail = that._getPathTail(thisMessage.path)
-		console.log('thisPath tail is: ' + thisPathTail)
-		that._getConnectionDestinationByConectionId(0, thisPathTail, function(destinationSpheron){
-			console.log('destinationSpheron is: ' + destinationSpheron)	
-			process.exit()
+		if(thisMessage){
+			var thisPathTail = that._getPathTail(thisMessage.path)
+			console.log('thisPath tail is: ' + thisPathTail)
+			that._getConnectionDestinationByConectionId(0, thisPathTail, function(destinationSpheron){
+				console.log('destinationSpheron is: ' + destinationSpheron)
+				that._updateSpheronInputQueue(destinationSpheron, thisMessage, thisTimestamp, function(result){
+					console.log('propagated queue item...')
+					callback()
+				})
+			})
+		} else {
+			callback()
+		}
+	},
+	_updateSpheronInputQueue(spheronId, newQueueItem, thisTimestamp, callback){
+		mongoUtils.getSpheron(spheronId, function(thisSpheron){
+
+			console.log('thisSpheron: ' + JSON.stringify(thisSpheron))
+			
+			thisSpheron.inputMessageQueue[thisTimestamp] = (thisSpheron.inputMessageQueue[thisTimestamp]) ? thisSpheron.inputMessageQueue[thisTimestamp] : {}
+			thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId] = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId]) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId] : {}
+			if(newQueueItem.isVariant == false){
+				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant : []
+				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant.push(newQueueItem)
+
+			} else {
+				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant : []
+				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant.push(newQueueItem)
+			}
+
+			/*
+			* TODO: Check if the connection is multi-variant at the point of entry into the new spheron and if so, set the input message on both connections.
+			*/
+
+			thisSpheron.state = "pending"
+			console.log('about to persist: ' + JSON.stringify(thisSpheron))
+			mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
+				callback()
+			})
+			/*mongoUtils.saveSpheron(thisSpheron, function(){
+				callback()
+			})*/
 		})
 	},
 	_getPathTail: function(thisPath){

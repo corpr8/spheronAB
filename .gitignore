@@ -12,4 +12,4 @@ yarn-error.log*
 .npm
 
 #diagnostic
-out.txt
+out.txt 

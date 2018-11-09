@@ -34,19 +34,13 @@
 				}
 				
 			},
-			"variantMaps" : [
+			"variantMaps" : [ 
 			],
-			"propogationMessageQueue": { 
+			"propagationMessageQueue": { 
 			}, 
-			"bpErrorMessageQueue" : [
-				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 1},
-				{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 0.3}
-			],
+			"bpErrorMessageQueue" : [],
 			"variantErrorMaps" : [
-				{
-					"bias1":[ 1, null, null, null],
-					"bias1a":[0.3, null, null, null]
-				}
+				{}
 			]
 		},
 		{"spheronId": "inputSpheron2",
@@ -68,7 +62,7 @@
 			},
 			"variantMaps" : [
 			],
-			"propogationMessageQueue": [
+			"propagationMessageQueue": [
 			],
 			"bpErrorMessageQueue" : [
 
@@ -87,11 +81,8 @@
 			"inputMessageQueue": {}, 
 			"variantMaps" : [
 			],			
-			"propogationMessageQueue": [],
-			"bpErrorMessageQueue" : [
-				{"problemId" : "whatIsAnd", "path" : "input1;bias1;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 1},
-				{"problemId" : "whatIsAnd", "path" : "input1;bias1a;internal1;input2;internal2;ANDout", "isVariant": true, "testIdx": 0, "sigId" : "123456789", "error": 0.3}
-			],
+			"propagationMessageQueue": [],
+			"bpErrorMessageQueue" : [],
 			"variantErrorMaps" : [
 			]
 		}

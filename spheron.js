@@ -27,7 +27,7 @@ var Spheron = function (config) {
 	this.exclusionErrorMaps = (config.exclusionErrorMaps) ? config.exclusionErrorMaps : [] //Here we will maintain our understanding of the performance of different variants
 	this.options = (config.options) ? config.options : {}
 	this.path = (config.path) ? config.path : ""
-	this.exclusions = (config.exclusions) ? config.exclusions : []
+	this.exclusions = (config.exclusions) ? config.exclusions : [] 
 }
 
 Spheron.prototype.calculateSignalVector = function(){

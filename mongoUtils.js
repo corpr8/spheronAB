@@ -54,11 +54,19 @@ var mongoUtils = {
 	getSpheron: function(id, callback){
 		mongoNet.findOne({
 			type: "spheron",
-			id: id
+			spheronId: id
 		}, function(err, result) {
 	    	if (err) throw err;
 	    	callback(result)
 		});
+	},
+	_old_saveSpheron: function(spheronData, callback){
+		console.log('saving spheron')
+		console.log('new data: ' + JSON.stringify(spheronData))
+		mongoNet.updateOne({"spheronId" : spheronData.spheronId}, spheronData, function(err, result){
+			//console.log('in save callback')
+			callback()
+		})
 	},
 	deleteSpheron: function(id, callback){
 		/*
@@ -138,52 +146,26 @@ var mongoUtils = {
 			if(err){
 				callback({})
 			} else { 
-				callback(doc.value)
+				callback(doc.value) 
 			}	
 		})
 	},
 	persistSpheron: function(spheronId, updateJSON, callback){
-		console.log('about to update spheron: ' + spheronId)
-		var hadDocuments = false
-			mongoNet.find({
-				"type":"spheron",
-				"spheronId" : spheronId
-			}).forEach(function (doc) {
-				if(doc){
-					hadDocuments = true
-					//console.log('in a doc: ' + JSON.stringify(doc))
-					if(updateJSON.io){
-						for (var port in updateJSON.io) {
-						    for (var setting in updateJSON.io[port]) {
-						    	if(doc.io[port]){
-							    	doc.io[port][setting] = updateJSON.io[port][setting]
-						    	}
-						    }
-						}
-					}
-					if(updateJSON.state){
-						doc.state = updateJSON.state
-					}
-					if(updateJSON.stateTickStamp){
-						doc.stateTickStamp = updateJSON.stateTickStamp
-					}
-
-					//console.log('updated doc is: ' + JSON.stringify(doc))
-					mongoNet.updateOne({"spheronId" : spheronId },{$set:doc}, function(doc){
-						process.nextTick(function(){
-							callback()	
-						})
-					});
-				} else {
-					callback()
-				}					
-			}).then(function(){
-				if(hadDocuments == false){
-					console.log('had documents:' + hadDocuments)
-					console.log('weirdly we are here. Is this because of exactly 0 results???')
-					callback()
-				}	
-			})
+		console.log('about to persist spheron: ' + spheronId)
+		console.log('update JSON is: ' + JSON.stringify(updateJSON))
+		mongoNet.findOneAndUpdate({
+			spheronId: spheronId
+		},{
+			$set: updateJSON
+		}, 
+		{}, 
+		function(err,doc){
+			if(err){
+				callback({})
+			} else { 
+				callback()
+			}	
+		})
 	},
 	_mutationOperators: {
 		/*
