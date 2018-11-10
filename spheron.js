@@ -27,7 +27,8 @@ var Spheron = function (config) {
 	this.exclusionErrorMaps = (config.exclusionErrorMaps) ? config.exclusionErrorMaps : [] //Here we will maintain our understanding of the performance of different variants
 	this.options = (config.options) ? config.options : {}
 	this.path = (config.path) ? config.path : ""
-	this.exclusions = (config.exclusions) ? config.exclusions : [] 
+	this.exclusions = (config.exclusions) ? config.exclusions : []
+	this.nextTick = (config.nextTick) ? config.nextTick : 0 
 }
 
 Spheron.prototype.calculateSignalVector = function(){
@@ -189,9 +190,10 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 }
 
 Spheron.prototype._runOutputFn = function(thisConn){
+	var that = this
 	if(thisConn.outputFn){
 		console.log('we had an output function')
-		if(this.config.trainingMode == true && thisConn.outputFn.ignoreWhileTrain == true){
+		if(that.trainingMode == true && thisConn.outputFn.ignoreWhileTrain == true){
 			//nothing to do.
 		} else {
 			if(thisConn.outputFn.mode == "eq"){

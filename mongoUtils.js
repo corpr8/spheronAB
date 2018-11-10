@@ -131,23 +131,32 @@ var mongoUtils = {
 			callback()
 		}
 	},
-	getNextPendingSpheron: function(callback){
+	getNextPendingSpheron: function(tickStamp, callback){
 		//The main function loop - pulls back spherons which are awaitng processing.
 		//TODO: Works but needs to return the one with the lowest pendAct + state == pending
+		console.log('getting next spheron for tick: ' + tickStamp)
+		//nextTick: { $lt: thisNextTick },
+					//
 		mongoNet.findOneAndUpdate({
+			nextTick: { $lte: tickStamp },
 			type:"spheron",
 			state:"pending"
 		},{
 			$set:{state:"running"}
 		}, {
 			new: true,
-			sort: {stateTickStamp: -1}
+			sort: {nextTick: -1}
 		}, function(err,doc){
 			if(err){
+				console.log('no pending spherons')
 				callback({})
-			} else { 
-				callback(doc.value) 
-			}	
+			} else if (doc.value != null){ 
+				console.log('spheron is: ' + JSON.stringify(doc.value))
+				callback(doc.value)
+			} else {
+				console.log('spheron was null: ' + JSON.stringify(doc))
+				callback({})
+			}
 		})
 	},
 	persistSpheron: function(spheronId, updateJSON, callback){

@@ -3,6 +3,10 @@ Collection dropped
 sample spherons created.
 init complete
 systemTick: 1
+getting next spheron for tick: 1
+spheron is: {"_id":"5be6dbd8e0a6ce201d1cfbf0","spheronId":"inputSpheron1","type":"spheron","state":"pending","nextTick":1,"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":-1},{"id":"bias1","type":"bias","angle":20,"val":-1},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":-1}],"inputMessageQueue":{"1":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1","testIdx":0,"val":1,"isVariant":true,"sigId":"123456789"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":{},"bpErrorMessageQueue":[],"variantErrorMaps":[{}],"problemId":"whatIsAnd"}
+in getNextPendingSpheron callback
+have we got a spheron? : inputSpheron1
 runtime functions.
 Begin Processing a Spheron. Tick is: 1 spheron id is: inputSpheron1
 Phase0: should we mutate?
@@ -24,15 +28,18 @@ whatIsAnd
        val: 0.32635,
        isVariant: false,
        sigId: 'sigId-123456789' } ] }
-oldest message in queue: 2
+oldest message in queue: undefined
 system Tick: 1
 no processing to be done within the inputMessageQueue
 we returned from our inputMessageQueueAgeIterator
 finished Phase1.
-dump: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{"2":{"sigId-234567890":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1","testIdx":1,"val":0,"isVariant":false,"sigId":"234567890"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":{"2":{"sigId-123456789":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+dump: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{"2":{"sigId-123456789":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
 Phase2: propagate results to downstream spherons
 in propagationQueueIterator
-false
+Object.keys(that.spheron.propagationMessageQueue)[0] undefinedtrue
+Object.keys(that.spheron.propagationMessageQueue)[0] not undefinedfalse
+2
+{ '2': { 'sigId-123456789': [ [Object] ] } }
 ageQueueIdx0: 2
 timestamp is: 2
 sigId-123456789
@@ -45,99 +52,535 @@ sigId-123456789
 propagating: {"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}
 thisPath tail is: internal1
 destinationSpheron is: outputSpheron1
-thisSpheron: {"_id":"5be5b79ae450fc13dc777956","spheronId":"outputSpheron1","type":"spheron","state":"idle","io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
-about to persist: {"_id":"5be5b79ae450fc13dc777956","spheronId":"outputSpheron1","type":"spheron","state":"pending","io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+trying to update spheron with id: outputSpheron1
+thisSpheron: {"_id":"5be6dbd8e0a6ce201d1cfbf2","spheronId":"outputSpheron1","type":"spheron","state":"idle","nextTick":2,"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+about to persist: {"_id":"5be6dbd8e0a6ce201d1cfbf2","spheronId":"outputSpheron1","type":"spheron","state":"pending","nextTick":2,"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
 about to persist spheron: outputSpheron1
-update JSON is: {"_id":"5be5b79ae450fc13dc777956","spheronId":"outputSpheron1","type":"spheron","state":"pending","io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+update JSON is: {"_id":"5be6dbd8e0a6ce201d1cfbf2","spheronId":"outputSpheron1","type":"spheron","state":"pending","nextTick":2,"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
 propagated queue item...
 Deleting message
 propagation que length for this sigId is 0
 in _propagationQueueSigIterator callback
 finished Phase2
-dump: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{"2":{}},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+dump: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
 Phase3: handling backprop messages
 Phase4: handle multi-variant resolution
 Phase5: persisting this spheron back to mongo...
 in default phase handler (i.e,. the fallback.) - phase is: 6
 about to persist spheron: inputSpheron1
-update JSON is: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{"2":{}},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+update JSON is: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
 timestamp is: 2
-sigId-123456789
-undefined
-there is nothing within this timestamp...
 in _propagationQueueSigIterator callback
 finished Phase2
-dump: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+dump: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
 Phase4: handle multi-variant resolution
 Phase5: persisting this spheron back to mongo...
 in default phase handler (i.e,. the fallback.) - phase is: 6
 about to persist spheron: inputSpheron1
-update JSON is: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+update JSON is: {"io":[{"id":"input1","type":"extInput","angle":0,"fromId":"ext","val":1,"sigId":"123456789","path":"input1","isVariant":true,"problemId":"whatIsAnd","testIdx":0},{"id":"bias1","type":"bias","angle":20,"val":-1,"path":"bias1"},{"id":"internal1","type":"output","angle":-60,"toId":"outputSpheron1","val":0.32635,"path":"internal1"}],"signalVector":[0.06030000000000002,-0.34203],"state":"idle","spheronId":"inputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":{},"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
 systemTick: 1
+getting next spheron for tick: 1
+spheron is: {"_id":"5be6dbd8e0a6ce201d1cfbf1","spheronId":"inputSpheron2","type":"spheron","state":"pending","nextTick":1,"io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext"},{"id":"internal2","type":"output","angle":60,"val":-1,"toId":"outputSpheron1"}],"inputMessageQueue":{"1":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input2","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+in getNextPendingSpheron callback
+have we got a spheron? : inputSpheron2
 runtime functions.
-Begin Processing a Spheron. Tick is: 1 spheron id is: outputSpheron1
+Begin Processing a Spheron. Tick is: 1 spheron id is: inputSpheron2
+Phase0: should we mutate?
+Phase1: lets handle input queues and activation?
+in input queue iterator
+oldest message in queue: 1
+system Tick: 1
+our updatemessage is: {"problemId":"whatIsAnd","path":"input2","testIdx":0,"val":0,"isVariant":false,"sigId":"123456789"}
+updated connection: {"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext","sigId":"123456789","path":"input2","isVariant":false,"problemId":"whatIsAnd","testIdx":0}
+we updated the input...
+"***{\"id\":\"internal2\",\"type\":\"output\",\"angle\":60,\"val\":0,\"toId\":\"outputSpheron1\",\"path\":\"internal2\"}"
+calling back from spherons activate function - with these results: {"internal2":{"path":"input2;internal2","val":0}}
+In the non variant callback from Activate with this result: {"internal2":{"path":"input2;internal2","val":0}}
+whatIsAnd
+{ 'sigId-123456789': 
+   [ { problemId: 'whatIsAnd',
+       path: 'input2;internal2',
+       testIdx: undefined,
+       val: 0,
+       isVariant: false,
+       sigId: 'sigId-123456789' } ] }
+oldest message in queue: undefined
+system Tick: 1
+no processing to be done within the inputMessageQueue
+we returned from our inputMessageQueueAgeIterator
+finished Phase1.
+dump: {"io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext","sigId":"123456789","path":"input2","isVariant":false,"problemId":"whatIsAnd","testIdx":0},{"id":"internal2","type":"output","angle":60,"val":0,"toId":"outputSpheron1","path":"internal2"}],"signalVector":[0,0],"state":"idle","spheronId":"inputSpheron2","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,{"sigId-123456789":[{"problemId":"whatIsAnd","path":"input2;internal2","val":0,"isVariant":false,"sigId":"sigId-123456789"}]}],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
+Phase2: propagate results to downstream spherons
+in propagationQueueIterator
+Object.keys(that.spheron.propagationMessageQueue)[0] undefinedtrue
+Object.keys(that.spheron.propagationMessageQueue)[0] not undefinedfalse
+2
+[ <2 empty items>, { 'sigId-123456789': [ [Object] ] } ]
+ageQueueIdx0: 2
+timestamp is: 2
+sigId-123456789
+[ { problemId: 'whatIsAnd',
+    path: 'input2;internal2',
+    testIdx: undefined,
+    val: 0,
+    isVariant: false,
+    sigId: 'sigId-123456789' } ]
+propagating: {"problemId":"whatIsAnd","path":"input2;internal2","val":0,"isVariant":false,"sigId":"sigId-123456789"}
+thisPath tail is: internal2
+destinationSpheron is: outputSpheron1
+trying to update spheron with id: outputSpheron1
+thisSpheron: {"_id":"5be6dbd8e0a6ce201d1cfbf2","spheronId":"outputSpheron1","type":"spheron","state":"pending","nextTick":2,"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+about to persist: {"_id":"5be6dbd8e0a6ce201d1cfbf2","spheronId":"outputSpheron1","type":"spheron","state":"pending","nextTick":2,"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"},{"problemId":"whatIsAnd","path":"input2;internal2","val":0,"isVariant":false,"sigId":"sigId-123456789"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+about to persist spheron: outputSpheron1
+update JSON is: {"_id":"5be6dbd8e0a6ce201d1cfbf2","spheronId":"outputSpheron1","type":"spheron","state":"pending","nextTick":2,"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"},{"problemId":"whatIsAnd","path":"input2;internal2","val":0,"isVariant":false,"sigId":"sigId-123456789"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+propagated queue item...
+Deleting message
+propagation que length for this sigId is 0
+in _propagationQueueSigIterator callback
+finished Phase2
+dump: {"io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext","sigId":"123456789","path":"input2","isVariant":false,"problemId":"whatIsAnd","testIdx":0},{"id":"internal2","type":"output","angle":60,"val":0,"toId":"outputSpheron1","path":"internal2"}],"signalVector":[0,0],"state":"idle","spheronId":"inputSpheron2","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,null],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
+Phase3: handling backprop messages
+Phase4: handle multi-variant resolution
+Phase5: persisting this spheron back to mongo...
+in default phase handler (i.e,. the fallback.) - phase is: 6
+about to persist spheron: inputSpheron2
+update JSON is: {"io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext","sigId":"123456789","path":"input2","isVariant":false,"problemId":"whatIsAnd","testIdx":0},{"id":"internal2","type":"output","angle":60,"val":0,"toId":"outputSpheron1","path":"internal2"}],"signalVector":[0,0],"state":"idle","spheronId":"inputSpheron2","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,null],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
+timestamp is: 2
+in _propagationQueueSigIterator callback
+finished Phase2
+dump: {"io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext","sigId":"123456789","path":"input2","isVariant":false,"problemId":"whatIsAnd","testIdx":0},{"id":"internal2","type":"output","angle":60,"val":0,"toId":"outputSpheron1","path":"internal2"}],"signalVector":[0,0],"state":"idle","spheronId":"inputSpheron2","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,null],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
+Phase4: handle multi-variant resolution
+Phase5: persisting this spheron back to mongo...
+in default phase handler (i.e,. the fallback.) - phase is: 6
+about to persist spheron: inputSpheron2
+update JSON is: {"io":[{"id":"input2","type":"extInput","angle":0,"val":0,"fromId":"ext","sigId":"123456789","path":"input2","isVariant":false,"problemId":"whatIsAnd","testIdx":0},{"id":"internal2","type":"output","angle":60,"val":0,"toId":"outputSpheron1","path":"internal2"}],"signalVector":[0,0],"state":"idle","spheronId":"inputSpheron2","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,null],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":1}
+systemTick: 1
+getting next spheron for tick: 1
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 2
+getting next spheron for tick: 2
+spheron is: {"_id":"5be6dbd8e0a6ce201d1cfbf2","spheronId":"outputSpheron1","type":"spheron","state":"pending","nextTick":2,"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"},{"problemId":"whatIsAnd","path":"input2;internal2","testIdx":null,"val":0,"isVariant":false,"sigId":"sigId-123456789"}],"variant":[]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"variantErrorMaps":[],"problemId":"whatIsAnd"}
+in getNextPendingSpheron callback
+have we got a spheron? : outputSpheron1
+runtime functions.
+Begin Processing a Spheron. Tick is: 2 spheron id is: outputSpheron1
 Phase0: should we mutate?
 Phase1: lets handle input queues and activation?
 in input queue iterator
 oldest message in queue: 2
-system Tick: 1
+system Tick: 2
+our updatemessage is: {"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}
+updated connection: {"id":"internal1","type":"input","angle":0,"val":0.32635,"fromId":"inputSpheron1","sigId":"sigId-123456789","path":"input1;bias1;internal1","isVariant":false,"problemId":"whatIsAnd","testIdx":null}
+we updated the input...
+we had an output function
+"***{\"id\":\"ANDout\",\"type\":\"extOutput\",\"angle\":60,\"val\":0.16317,\"toId\":\"ext\",\"outputFn\":{\"mode\":\"eq\",\"val\":1,\"ignoreWhileTrain\":true},\"path\":\"ANDout\"}"
+calling back from spherons activate function - with these results: {"ANDout":{"path":"internal1;internal2;ANDout","val":0.16317}}
+In the non variant callback from Activate with this result: {"ANDout":{"path":"internal1;internal2;ANDout","val":0.16317}}
+whatIsAnd
+{ 'sigId-123456789': 
+   [ { problemId: 'whatIsAnd',
+       path: 'internal1;internal2;ANDout',
+       testIdx: undefined,
+       val: 0.16317,
+       isVariant: false,
+       sigId: 'sigId-123456789' } ] }
+our updatemessage is: {"problemId":"whatIsAnd","path":"input2;internal2","testIdx":null,"val":0,"isVariant":false,"sigId":"sigId-123456789"}
+updated connection: {"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2","path":"input2;internal2","sigId":"sigId-123456789","isVariant":false,"problemId":"whatIsAnd","testIdx":null}
+we updated the input...
+we had an output function
+"***{\"id\":\"ANDout\",\"type\":\"extOutput\",\"angle\":60,\"val\":0.16317,\"toId\":\"ext\",\"outputFn\":{\"mode\":\"eq\",\"val\":1,\"ignoreWhileTrain\":true},\"path\":\"ANDout\"}"
+calling back from spherons activate function - with these results: {"ANDout":{"path":"internal1;internal2;ANDout","val":0.16317}}
+In the non variant callback from Activate with this result: {"ANDout":{"path":"internal1;internal2;ANDout","val":0.16317}}
+whatIsAnd
+{ 'sigId-123456789': 
+   [ { problemId: 'whatIsAnd',
+       path: 'internal1;internal2;ANDout',
+       testIdx: undefined,
+       val: 0.16317,
+       isVariant: false,
+       sigId: 'sigId-123456789' },
+     { problemId: 'whatIsAnd',
+       path: 'internal1;internal2;ANDout',
+       testIdx: undefined,
+       val: 0.16317,
+       isVariant: false,
+       sigId: 'sigId-123456789' } ] }
+oldest message in queue: undefined
+system Tick: 2
 no processing to be done within the inputMessageQueue
-we returned from our inputMessageQueueAgeIterator 
+we returned from our inputMessageQueueAgeIterator
 finished Phase1.
-dump: {"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"signalVector":{},"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+dump: {"io":[{"id":"internal1","type":"input","angle":0,"val":0.32635,"fromId":"inputSpheron1","sigId":"sigId-123456789","path":"input1;bias1;internal1","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2","path":"input2;internal2","sigId":"sigId-123456789","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"ANDout","type":"extOutput","angle":60,"val":0.16317,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true},"path":"ANDout"}],"signalVector":[0.32634,0],"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,null,{"sigId-123456789":[{"problemId":"whatIsAnd","path":"internal1;internal2;ANDout","val":0.16317,"isVariant":false,"sigId":"sigId-123456789"},{"problemId":"whatIsAnd","path":"internal1;internal2;ANDout","val":0.16317,"isVariant":false,"sigId":"sigId-123456789"}]}],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":2}
 Phase2: propagate results to downstream spherons
 in propagationQueueIterator
-false
-propagationMessageQueue[0] is undefined
+Object.keys(that.spheron.propagationMessageQueue)[0] undefinedtrue
+Object.keys(that.spheron.propagationMessageQueue)[0] not undefinedfalse
+3
+[ <3 empty items>,
+  { 'sigId-123456789': [ [Object], [Object] ] } ]
+ageQueueIdx0: 3
+timestamp is: 3
+sigId-123456789
+[ { problemId: 'whatIsAnd',
+    path: 'internal1;internal2;ANDout',
+    testIdx: undefined,
+    val: 0.16317,
+    isVariant: false,
+    sigId: 'sigId-123456789' },
+  { problemId: 'whatIsAnd',
+    path: 'internal1;internal2;ANDout',
+    testIdx: undefined,
+    val: 0.16317,
+    isVariant: false,
+    sigId: 'sigId-123456789' } ]
+propagating: {"problemId":"whatIsAnd","path":"internal1;internal2;ANDout","val":0.16317,"isVariant":false,"sigId":"sigId-123456789"}
+thisPath tail is: ANDout
+destinationSpheron is: ext
+trying to update spheron with id: ext
+We have an answer at an output spheron... Lets broadcast this out to the i/o cortex???: {"problemId":"whatIsAnd","path":"internal1;internal2;ANDout","val":0.16317,"isVariant":false,"sigId":"sigId-123456789"}
+propagated queue item...
+Deleting message
+propagation que length for this timestamp is 0
+in _propagationQueueSigIterator callback
 finished Phase2
-dump: {"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"signalVector":{},"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
+dump: {"io":[{"id":"internal1","type":"input","angle":0,"val":0.32635,"fromId":"inputSpheron1","sigId":"sigId-123456789","path":"input1;bias1;internal1","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2","path":"input2;internal2","sigId":"sigId-123456789","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"ANDout","type":"extOutput","angle":60,"val":0.16317,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true},"path":"ANDout"}],"signalVector":[0.32634,0],"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,null,null],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":2}
 Phase3: handling backprop messages
 Phase4: handle multi-variant resolution
 Phase5: persisting this spheron back to mongo...
 in default phase handler (i.e,. the fallback.) - phase is: 6
 about to persist spheron: outputSpheron1
-update JSON is: {"io":[{"id":"internal1","type":"input","angle":0,"val":0,"fromId":"inputSpheron1"},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2"},{"id":"ANDout","type":"extOutput","angle":60,"val":-1,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true}}],"signalVector":{},"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{"2":{"sigId-123456789":{"nonVariant":[{"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":null,"val":0.32635,"isVariant":false,"sigId":"sigId-123456789"}]}}},"variantMaps":[],"propagationMessageQueue":[],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[]}
-systemTick: 1
+update JSON is: {"io":[{"id":"internal1","type":"input","angle":0,"val":0.32635,"fromId":"inputSpheron1","sigId":"sigId-123456789","path":"input1;bias1;internal1","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2","path":"input2;internal2","sigId":"sigId-123456789","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"ANDout","type":"extOutput","angle":60,"val":0.16317,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true},"path":"ANDout"}],"signalVector":[0.32634,0],"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,null,null],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":2}
+timestamp is: 3
+in _propagationQueueSigIterator callback
+finished Phase2
+dump: {"io":[{"id":"internal1","type":"input","angle":0,"val":0.32635,"fromId":"inputSpheron1","sigId":"sigId-123456789","path":"input1;bias1;internal1","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2","path":"input2;internal2","sigId":"sigId-123456789","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"ANDout","type":"extOutput","angle":60,"val":0.16317,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true},"path":"ANDout"}],"signalVector":[0.32634,0],"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,null,null],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":2}
+Phase4: handle multi-variant resolution
+Phase5: persisting this spheron back to mongo...
+in default phase handler (i.e,. the fallback.) - phase is: 6
+about to persist spheron: outputSpheron1
+update JSON is: {"io":[{"id":"internal1","type":"input","angle":0,"val":0.32635,"fromId":"inputSpheron1","sigId":"sigId-123456789","path":"input1;bias1;internal1","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"internal2","type":"input","angle":0,"val":0,"fromId":"inputSpheron2","path":"input2;internal2","sigId":"sigId-123456789","isVariant":false,"problemId":"whatIsAnd","testIdx":null},{"id":"ANDout","type":"extOutput","angle":60,"val":0.16317,"toId":"ext","outputFn":{"mode":"eq","val":1,"ignoreWhileTrain":true},"path":"ANDout"}],"signalVector":[0.32634,0],"state":"idle","spheronId":"outputSpheron1","problemId":"whatIsAnd","testLength":-1,"testIdx":-1,"trainingMode":true,"inputMessageQueue":{},"variantMaps":[],"propagationMessageQueue":[null,null,null,null],"bpErrorMessageQueue":[],"exclusionErrorMaps":[],"options":{},"path":"","exclusions":[],"nextTick":2}
 systemTick: 2
+getting next spheron for tick: 2
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 3
+getting next spheron for tick: 3
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 4
+getting next spheron for tick: 4
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 5
+getting next spheron for tick: 5
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 6
+getting next spheron for tick: 6
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 7
+getting next spheron for tick: 7
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 8
+getting next spheron for tick: 8
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 9
+getting next spheron for tick: 9
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 10
+getting next spheron for tick: 10
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 11
+getting next spheron for tick: 11
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 12
+getting next spheron for tick: 12
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 13
+getting next spheron for tick: 13
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 14
+getting next spheron for tick: 14
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 15
+getting next spheron for tick: 15
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 16
+getting next spheron for tick: 16
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 17
+getting next spheron for tick: 17
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 18
+getting next spheron for tick: 18
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 19
+getting next spheron for tick: 19
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 20
+getting next spheron for tick: 20
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 21
+getting next spheron for tick: 21
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 22
+getting next spheron for tick: 22
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 23
+getting next spheron for tick: 23
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 24
+getting next spheron for tick: 24
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 25
+getting next spheron for tick: 25
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 26
+getting next spheron for tick: 26
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 27
+getting next spheron for tick: 27
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 28
+getting next spheron for tick: 28
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 29
+getting next spheron for tick: 29
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 30
+getting next spheron for tick: 30
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 31
+getting next spheron for tick: 31
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 32
+getting next spheron for tick: 32
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 33
+getting next spheron for tick: 33
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 34
+getting next spheron for tick: 34
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 35
+getting next spheron for tick: 35
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 36
+getting next spheron for tick: 36
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 37
+getting next spheron for tick: 37
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 38
+getting next spheron for tick: 38
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 39
+getting next spheron for tick: 39
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 systemTick: 40
+getting next spheron for tick: 40
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 41
+getting next spheron for tick: 41
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 42
+getting next spheron for tick: 42
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 43
+getting next spheron for tick: 43
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 44
+getting next spheron for tick: 44
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 45
+getting next spheron for tick: 45
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 46
+getting next spheron for tick: 46
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 47
+getting next spheron for tick: 47
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 48
+getting next spheron for tick: 48
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 49
+getting next spheron for tick: 49
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 50
+getting next spheron for tick: 50
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 51
+getting next spheron for tick: 51
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 52
+getting next spheron for tick: 52
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 53
+getting next spheron for tick: 53
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 54
+getting next spheron for tick: 54
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 55
+getting next spheron for tick: 55
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 56
+getting next spheron for tick: 56
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 57
+getting next spheron for tick: 57
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 58
+getting next spheron for tick: 58
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 59
+getting next spheron for tick: 59
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 60
+getting next spheron for tick: 60
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 61
+getting next spheron for tick: 61
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 62
+getting next spheron for tick: 62
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 63
+getting next spheron for tick: 63
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 64
+getting next spheron for tick: 64
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
+systemTick: 65
+getting next spheron for tick: 65
+spheron was null: {"lastErrorObject":{"n":0,"updatedExisting":false},"value":null,"ok":1}
+in getNextPendingSpheron callback
+have we got a spheron? : undefined
 
-handling SIGINT
-
+handling SIGINT
 

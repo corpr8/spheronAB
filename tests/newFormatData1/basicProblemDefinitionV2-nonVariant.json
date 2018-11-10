@@ -8,6 +8,7 @@
 		{"spheronId": "inputSpheron1",
 			"type" : "spheron",
 			"state" : "pending",
+			"nextTick" : 1,
 			"io": [
 				{"id" : "input1", "type": "extInput", "angle": 0, "fromId": "ext", "val":-1},
 				{"id" : "bias1", "type": "bias", "angle": 20, "val":-1},
@@ -23,16 +24,7 @@
 							
 						]
 					}
-				},
-				"2": {
-					"sigId-234567890":{
-						"nonVariant":[
-							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 1, "val": 0, "isVariant": false, "sigId" : "234567890" }
-						],
-						"variant": []
-					}
 				}
-				
 			},
 			"variantMaps" : [ 
 			],
@@ -45,7 +37,8 @@
 		},
 		{"spheronId": "inputSpheron2",
 			"type" : "spheron",
-			"state" : "idle",
+			"state" : "pending",
+			"nextTick" : 1,
 			"io": [
 				{"id" : "input2", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
 				{"id" : "internal2", "type": "output", "angle": 60, "val": -1, "toId": "outputSpheron1"}
@@ -73,6 +66,7 @@
 		{"spheronId": "outputSpheron1",
 			"type" : "spheron",
 			"state" : "idle",
+			"nextTick" : 2,
 			"io": [
 				{"id" : "internal1", "type": "input", "angle": 0, "val": 0, "fromId": "inputSpheron1"},
 				{"id" : "internal2", "type": "input", "angle": 0, "val": 0, "fromId": "inputSpheron2"},
