@@ -10,15 +10,6 @@ const process = require("process")
 const socket = dgram.createSocket({ type: "udp4", reuseAddr: true })
 
 var udpUtils = function(){
-    socket.bind(PORT)
-
-    socket.on("listening", function() {
-      socket.addMembership(MULTICAST_ADDR)
-      var that = this
-      const address = socket.address()
-      console.log(`UDP socket listening on ${address.address}:${address.port} pid: ${process.pid}`)
-    })
-    
     var that = this
     socket.on("message", function(message, rinfo) {
       //console.log(message, rinfo)
@@ -38,6 +29,14 @@ var udpUtils = function(){
         console.info(`Sending message "${message}"`)
       })
     }
+    socket.bind(PORT)
+
+    socket.on("listening", function() {
+      socket.addMembership(MULTICAST_ADDR)
+      const address = socket.address()
+      console.log(`UDP socket listening on ${address.address}:${address.port} pid: ${process.pid}`)
+      that.sendMessage('we are online')
+    })
 }
 
 util.inherits(udpUtils, EventEmitter)

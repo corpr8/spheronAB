@@ -6,7 +6,6 @@
 * 
 * Upload problem (i.e. a definition of end point spherons and a test plan which must be passed)
 * monitor problem
-* create spheron
 * host webservice endpoing
 * host status webpage
 *
@@ -47,12 +46,17 @@ app.get('/', function(req, res){
 * Endpoint for job uploading.
 */
 
-
 app.post('/postProblem', function (req, res) {
 	console.log(req.body.jobData)
   	var jobData = JSON.parse(req.body.jobData)
+    /*
+    * Create Job Metadata file - including testplan
+    * Create initial Spheron network
+    * Load whole test plan onto activation spherons input queues - with a time based spread...
+    * 
+    */
   	mongoUtils.importProblem(jobData ,function(){
-  		console.log('we have imported a problem definition with network')
+  		console.log('we have imported a problem definition with associated network network')
 
   		/*
 

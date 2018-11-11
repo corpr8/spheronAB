@@ -1,22 +1,15 @@
-<!doctype html>
-<html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <title></title>
-
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="icon" href="images/favicon.png">
 </head>
-
 <body>
-	We fired up the ioCortex monitor page (io)
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-  <script src="js/scripts.js"></script>
+	Cortex.io monitor
+	<h1>Load a job</h1>
+	<form action="/postJob" method="post">
+  		jobData: <textarea name="jobData" cols="40" rows="5"></textarea>
+      <br>
+  		<input type="submit" value="Submit">
+	</form>
+	<div id="diagnosticArea"></div>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+   <script src="js/scripts.js"></script>
 </body>
-
-</html>

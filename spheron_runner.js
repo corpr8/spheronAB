@@ -6,7 +6,8 @@
 
 var mongoUtils = require('./mongoUtils.js')
 var Spheron = require('./spheron.js')
-var udpUtils = require('./udpUtils.js')
+const UdpUtils = require('./udpUtils.js')
+var udpUtils = new UdpUtils()
 
 //TODO: we need a callback handler for new spherons so that when they 'emit' status messages, we can update our workflow...
 
@@ -36,7 +37,7 @@ var spheron_runner = {
 		this.systemTick = 1
 		this.systemTickTimer = setInterval(function(){
 			t.tick()
-		},100) //quick
+		},100)
 		return //as we are not blocking the thread, simply setting stuff up for later.
 	},
 	stopTicking: function(){
@@ -55,25 +56,14 @@ var spheron_runner = {
 			*/
 			console.log('systemTick: ' + that.systemTick)
 			mongoUtils.getNextPendingSpheron(that.systemTick, function(result){ 
-				//do tick stuff
-				//do we have a spheron?
-				// --> if so, propagate, backprop signalTraces and check signalTrace set completion...
 				console.log('in getNextPendingSpheron callback')
-				console.log('have we got a spheron? : ' + (result.spheronId))
-
-				//process.exit()
-
 				if(that.isSpheron(result) == true){
-					//console.log('we loaded a spheron: ' + JSON.stringify(result))
 					that.spheron = new Spheron(result)
-
 					console.log('runtime functions.')
 					that.processSpheron(0, function(){
 						that.inTick = false
 					})
 				} else {
-					//if not:
-					// --> increment system tick, inTick = false
 					that.systemTick += 1
 					that.inTick = false
 				}
@@ -182,18 +172,14 @@ var spheron_runner = {
 	},
 	backpropIterator: function(callback){
 		/*
+		* TODO: 
+		*
 		* If we have messages in the bpErrorMessageQueue
 		* For each message
 		* 1) Iterate inputs and write the message to the spheron on the far end of the input.
 		* 2) Update the variantErrorMaps IF the path is part of the errorMap
 		* 3) Delete the bpErrorMessageQueue item
 		*/
-
-
-
-
-
-
 		callback()
 	},
 	propagationQueueIterator: function(callback){
@@ -238,8 +224,6 @@ var spheron_runner = {
 
 				if(typeof thisSigId != undefined){
 					if(that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]){
-						//if((that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]).length > 0){
-							//propagate the message.
 							that._propagateMessage(thisTimestamp, that.spheron.propagationMessageQueue[thisTimestamp][thisSigId][0], function(){
 								console.log('Deleting message')
 								/*
@@ -263,19 +247,11 @@ var spheron_runner = {
 
 								that._propagationQueueSigIterator(thisTimestamp, callback)
 							})	
-						//} else {
-						//	that.spheron.propagationMessageQueue[thisTimestamp][thisSigId] = null
-						//	that._propagationQueueSigIterator(thisTimestamp, callback)
-						//}
 					} else {
 						console.log('there is nothing within this timestamp...')
-						/*
-						* ok so here is blowing up...
-						*/
 						that.spheron.propagationMessageQueue[thisTimestamp][thisSigId] = undefined
 						that.spheron.propagationMessageQueue[thisTimestamp] = undefined
 						callback()
-						//that._propagationQueueSigIterator(thisTimestamp, callback)
 					}
 				} else {
 					callback()
@@ -321,12 +297,23 @@ var spheron_runner = {
 		var that = this
 		console.log('trying to update spheron with id: ' + spheronId)
 		if(spheronId == 'ext'){
-			console.log('We have an answer at an output spheron... Lets broadcast this out to the i/o cortex???: ' + JSON.stringify(newQueueItem))
 			/*
+			* TODO: We have an output here...
 			*
-			* Or should we compare against the plan as stored in the db?
+			* Emit / update lesson or whatever...
 			*/
-			callback()
+			console.log('We have an answer at an output spheron... Lets broadcast this out to the i/o cortex???: ' + JSON.stringify(newQueueItem))
+
+			//broadcast.
+			udpUtils.sendMessage(JSON.stringify(newQueueItem))
+				/*
+				*
+				* should we compare against the plan as stored in the lesson and send a message back?
+				*/
+				console.log('calledback from sendmessage...')
+				callback()
+			
+
 		} else {
 			mongoUtils.getSpheron(spheronId, function(thisSpheron){
 
@@ -334,9 +321,8 @@ var spheron_runner = {
 				
 				thisSpheron.inputMessageQueue[thisTimestamp] = (thisSpheron.inputMessageQueue[thisTimestamp]) ? thisSpheron.inputMessageQueue[thisTimestamp] : {}
 				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId] = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId]) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId] : {}
-
 				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant : []
-					thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant : []
+				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant : []
 
 				if(newQueueItem.isVariant == false){
 					thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant.push(newQueueItem)
@@ -416,24 +402,14 @@ var spheron_runner = {
 		var that = this
 		that._getSigIdFromMessageQueue(timestamp, function(thisSigId){
 			if(thisSigId){
-				//TODO:
-				//console.log('we found sigId: ' + thisSigId +  ' within timestamp: ' + timestamp)
-
-				//set all non-variant inputs and remove them from the queue.
-				//console.log('this message:' + that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0])
 				if(that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.length > 0 && typeof that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined' ){
 					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";").length -1]
-					//console.log('we are going to update: ' + targetInput)
 					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0], 0, function(){
 						console.log('we updated the input...')
-						//clear the message from the queue.
 						that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.splice(0,1)
-						//console.log('deleted message from the nonVariant queue. ')
-
 						if(((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).length == 0 ||  that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined') && (that.spheron.inputMessageQueue[timestamp][thisSigId].variant).length == 0){
 							//activate immediately - note activate takes care of internal multivariance...
 							that.activate(thisSigId, function(){
-								//console.log('activated')
 								that._inputMessageSigIdIterator(timestamp, callback)	
 							})
 						} else {
@@ -441,16 +417,10 @@ var spheron_runner = {
 						}
 					})
 				} else if(that.spheron.inputMessageQueue[timestamp][thisSigId].variant.length > 0){
-					//console.log('in variant branch')
 					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";").length -1]
-					//TODO: handle variant activations...
 					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0], 0, function(){
-						//console.log('we updated the input... (variant)')
-						//clear the message from the queue.
 						(that.spheron.inputMessageQueue[timestamp][thisSigId].variant).shift()
-						//console.log('deleted the message from the variant queue')
 						that.activate(thisSigId, function(){
-							//console.log('activated')
 							that._inputMessageSigIdIterator(timestamp, callback)
 						})
 					})
