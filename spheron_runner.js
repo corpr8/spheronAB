@@ -128,7 +128,7 @@ var spheron_runner = {
 		        * Then increment phaseIdx and call this function
 		        */
 		        console.log('Phase3: handling backprop messages')
-				that.backpropIterator(function(){
+				that.backpropIterator(null, 0, function(){
 					//process.exit()
 					phaseIdx += 1
 		    		that.processSpheron(phaseIdx, callback)
@@ -158,7 +158,7 @@ var spheron_runner = {
 		    	this.processSpheron(phaseIdx, callback)
 		        break;
 		    default:
-		    console.log('in default phase handler (i.e,. the fallback.) - phase is: ' + phaseIdx)
+		    console.log('in default phase handler (i.e. The fallback.) - phase is: ' + phaseIdx)
 		    	if(phaseIdx <= 5){
 		    		phaseIdx += 1
 		    		that.processSpheron(phaseIdx, callback)
@@ -170,7 +170,7 @@ var spheron_runner = {
 		    	}
 		}
 	},
-	backpropIterator: function(callback){
+	backpropIterator: function(upstreamSpheronArray, arrayIdx, callback){
 		/*
 		* TODO: 
 		*
@@ -180,7 +180,41 @@ var spheron_runner = {
 		* 2) Update the variantErrorMaps IF the path is part of the errorMap
 		* 3) Delete the bpErrorMessageQueue item
 		*/
-		callback()
+		var that = this
+
+		upstreamSpheronArray = (upstreamSpheronArray) ? upstreamSpheronArray : that.getUpstreamSpherons()
+		if(Object.keys(that.spheron.bpErrorMessageQueue)[0] !== undefined){
+			var thisBPMessage = that.spheron.bpErrorMessageQueue[0]
+			/*
+			* TODO: Needs testing and vaslidation.
+			*/
+
+			if(upstreamSpheronArray[arrayIdx]){
+				console.log('we have back propagation stuff to process.')
+				mongoUtils.getSpheron(upstreamSpheronArray[arrayIdx], function(thisSpheron){
+					thisSpheron.bpErrorMessageQueue.push(thisBPMessage)
+					mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
+						that.backpropIterator(upstreamSpheronArray , (arrayIdx +1), callback)
+					})
+				})
+			} else {
+				// we have finished this line of the BP array
+				that.spheron.bpErrorMessageQueue.shift()
+				that.backpropIterator(upstreamSpheronArray, 0, callback)
+			}
+		} else {
+			callback()
+		}
+	},
+	getUpstreamSpherons: function(){
+		var that = this
+		var inputsArray = []
+		for(var connectionIdx in that.spheron.io){
+			if(that.spheron.io[connectionIdx].type == "input"){
+				inputsArray.push(that.spheron.io[connectionIdx].fromId)
+			}
+		}
+		return inputsArray
 	},
 	propagationQueueIterator: function(callback){
 		var that = this
@@ -200,7 +234,10 @@ var spheron_runner = {
 			console.log('ageQueueIdx0: ' + thisTimestamp)
 			that._propagationQueueSigIterator(thisTimestamp, function(){
 				console.log('in _propagationQueueSigIterator callback')
-				that.spheron.propagationMessageQueue[thisTimestamp] = undefined
+				/*
+				* Note: this needs to be tested once we are on terra firma...s
+				*/
+				delete that.spheron.propagationMessageQueue[thisTimestamp]
 				//that._propagationQueueAgeIterator(callback)
 				callback()
 			})
@@ -219,9 +256,6 @@ var spheron_runner = {
 			if(Object.keys((that.spheron.propagationMessageQueue)[thisTimestamp])[0]){
 				var thisSigId = Object.keys(that.spheron.propagationMessageQueue[thisTimestamp])[0]
 
-				console.log(thisSigId)
-				console.log((that.spheron.propagationMessageQueue[thisTimestamp])[thisSigId])
-
 				if(typeof thisSigId != undefined){
 					if(that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]){
 							that._propagateMessage(thisTimestamp, that.spheron.propagationMessageQueue[thisTimestamp][thisSigId][0], function(){
@@ -233,19 +267,25 @@ var spheron_runner = {
 
 								if(that.spheron.propagationMessageQueue[thisTimestamp][thisSigId].length == 0){
 									console.log('propagation que length for this sigId is 0')
-									that.spheron.propagationMessageQueue[thisTimestamp][thisSigId] = undefined
+									delete that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]
 									callback()
 								} else if(that.spheron.propagationMessageQueue[thisTimestamp].length == 0 || that.spheron.propagationMessageQueue[thisTimestamp].length == undefined){
 									console.log('propagation que length for this timestamp is 0')
-									that.spheron.propagationMessageQueue[thisTimestamp] = null
+									delete that.spheron.propagationMessageQueue[thisTimestamp]
 									callback()
 								} else {
+									/*
+									* I am not sure that this path is ever used. Why is it here?
+									*/
+
 									console.log('propagation que length for ' + thisTimestamp + ' is: ' + that.spheron.propagationMessageQueue[thisTimestamp].length)
 									console.log('dump of propagation queue: ' + JSON.stringify(that.spheron.propagationMessageQueue[thisTimestamp]))
+
+									that._propagationQueueSigIterator(thisTimestamp, callback)
 								}
 
 
-								that._propagationQueueSigIterator(thisTimestamp, callback)
+								
 							})	
 					} else {
 						console.log('there is nothing within this timestamp...')
@@ -260,7 +300,8 @@ var spheron_runner = {
 				callback()
 			}
 		} else {
-			that.spheron.propagationMessageQueue[thisTimestamp] = undefined
+			//that.spheron.propagationMessageQueue[thisTimestamp] = undefined
+			//that.spheron.propagationMessageQueue[thisTimestamp]
 			callback()
 		}
 	},
@@ -298,13 +339,13 @@ var spheron_runner = {
 		console.log('trying to update spheron with id: ' + spheronId)
 		if(spheronId == 'ext'){
 			/*
-			* TODO: We have an output here...
+			* TODO: We have an output here. We should look into if we are going to emit or check the input Queue and push more lesson data...
 			*
 			* Emit / update lesson or whatever...
 			*/
-			console.log('We have an answer at an output spheron... Lets broadcast this out to the i/o cortex???: ' + JSON.stringify(newQueueItem))
+			console.log('****We have an answer at an output spheron... Lets broadcast this out to the i/o cortex???: ' + JSON.stringify(newQueueItem))
 
-			//broadcast.
+			//broadcast (temporary).
 			udpUtils.sendMessage(JSON.stringify(newQueueItem))
 				/*
 				*
@@ -393,7 +434,6 @@ var spheron_runner = {
 			console.log('no processing to be done within the inputMessageQueue')
 			callback()
 		}
-
 	},
 	_inputMessageSigIdIterator: function(timestamp, callback){
 		/*
@@ -443,6 +483,7 @@ var spheron_runner = {
 				console.log('our updatemessage is: ' + JSON.stringify(updateMessage))
 				that.spheron.io[idx].val = updateMessage.val
 				that.spheron.io[idx].sigId = updateMessage.sigId
+				that.spheron.io[idx].testIdx = updateMessage.testIdx
 				that.spheron.io[idx].path = updateMessage.path
 				that.spheron.io[idx].isVariant = updateMessage.isVariant
 				that.spheron.io[idx].problemId = updateMessage.problemId
@@ -561,12 +602,10 @@ var spheron_runner = {
 			callback()	
 		})
 	}
-
 }
 
 spheron_runner.init(function(){
 	console.log('init complete')
-
 	process.on('SIGINT', function() {
 	  console.log('\r\nhandling SIGINT\r\r\n')
 	  process.exit();

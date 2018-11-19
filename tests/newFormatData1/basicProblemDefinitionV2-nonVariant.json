@@ -41,6 +41,7 @@
 			"nextTick" : 1,
 			"io": [
 				{"id" : "input2", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
+				{"id" : "bias1", "type": "bias", "angle": 20, "val":-1},
 				{"id" : "internal2", "type": "output", "angle": 60, "val": -1, "toId": "outputSpheron1"}
 			],
 			"inputMessageQueue": {
@@ -51,12 +52,19 @@
 						],
 						"variant": []
 					}
+				},
+				"2": {
+					"sigId-123456789":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input2", "testIdx": 1, "val": 0, "isVariant": false, "sigId" : "123456789" }
+						],
+						"variant": []
+					}
 				}
 			},
 			"variantMaps" : [
 			],
-			"propagationMessageQueue": [
-			],
+			"propagationMessageQueue": {},
 			"bpErrorMessageQueue" : [
 
 			],
@@ -75,8 +83,8 @@
 			"inputMessageQueue": {}, 
 			"variantMaps" : [
 			],			
-			"propagationMessageQueue": [],
-			"bpErrorMessageQueue" : [],
+			"propagationMessageQueue": {},
+			"bpErrorMessageQueue" : [{"Foo":"Bar"}],
 			"variantErrorMaps" : [
 			]
 		}

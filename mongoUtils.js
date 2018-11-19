@@ -43,7 +43,7 @@ var mongoUtils = {
 	dropDb: function(callback){
 		mongoNet.drop()
 		console.log('dropped old database')
-		return
+		callback()
 	},
 	find: function(callback){
 		mongoNet.find({}).toArray(function(err, result) {
@@ -107,9 +107,23 @@ var mongoUtils = {
 			})
 		})
 	},
+	importProblem: function(problemDefinition, callback){
+		/*
+ 		* Create Job Metadata db entry - (including testplan)
+    	* Create initial Spheron network
+    	* Load test plan onto activation spherons input queues - with a time based spread...
+		*/
+		var that = this
+		that.createProblemDefinition(problemDefinition, function(){
+			that.createSpheronFromArrayIterator(0, problemDefinition, function(){
+				console.log('Problem imported, spheron array created.')
+				callback()
+			})
+		})
+	},
 	createProblemDefinition: function(demoData, callback){
 		var thisProblemDefinition = JSON.parse(JSON.stringify(demoData))
-		delete thisProblemDefinition.network
+		//delete thisProblemDefinition.network
 		mongoNet.insertOne(thisProblemDefinition, function(err, res) {
 			if (err) throw err;
 			callback()
@@ -178,7 +192,11 @@ var mongoUtils = {
 	},
 	_mutationOperators: {
 		/*
-		* 
+		* 1: clone + tweak connection (in new or existent A/B group)
+		* 2: add connection to random existent spheron (in new or existent A/B)
+		* 3: add connection to new spheron (in new A/B)
+		* 4: remove connection (in new or existent A/B group)
+		* 5: remove spheron? Or is this a function of a spheron not having any outputs - or not being in an audit path - for any A/B tests for this problemId???
 		*/
 	}
 }

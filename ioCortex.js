@@ -46,7 +46,7 @@ app.get('/', function(req, res){
 * Endpoint for job uploading.
 */
 
-app.post('/postProblem', function (req, res) {
+app.post('/loadProblem', function (req, res) {
 	console.log(req.body.jobData)
   	var jobData = JSON.parse(req.body.jobData)
     /*
@@ -57,16 +57,21 @@ app.post('/postProblem', function (req, res) {
     */
   	mongoUtils.importProblem(jobData ,function(){
   		console.log('we have imported a problem definition with associated network network')
+      res.send('problem was imported ok. Now check Mongo.')
 
   		/*
-
-  		ok now what???
-
+      * TODO: Load testplan onto the input spherons...
   		*/
   		
   	})
 })
 
+app.get('/dropDb', function (req, res) {
+    mongoUtils.dropDb(function(){
+      console.log('we have dropped the db.')
+      res.send('ok.')
+    })
+})
 
 app.use(express.static('public'))
 
@@ -92,6 +97,9 @@ server.listen(3000, function(){
 
 var ioCortex = {
 	init: function(callback){
+    /*
+    * Do any setup...
+    */
 		callback()
 	}
 }

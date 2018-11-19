@@ -143,6 +143,9 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 
 		if(excludeThis == false){
 			thisConn.path = (thisConn.path) ? thisConn.path : thisConn.id
+			/*
+			* - I think the compound path bug might be in here..
+			*/
 			for(var thisOutput in theseOutputs){
 				if(typeof thisResults[theseOutputs[thisOutput]] == "undefined"){
 					thisResults[theseOutputs[thisOutput]] = {}
@@ -154,6 +157,9 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 					thisResults[theseOutputs[thisOutput]].path = thisResults[theseOutputs[thisOutput]].path + ';' + thisConn.id
 				}
 			}
+			/*
+			* -end think
+			*/
 
 			if(thisConn.type == 'output' || thisConn.type == 'extOutput'){
 				//find signalVector as a polar angle
