@@ -26,7 +26,8 @@ var Spheron = function (config) {
 	this.bpErrorMessageQueue = (config.bpErrorMessageQueue) ? config.bpErrorMessageQueue : [] //backpropped messages waiting to be processed and passed upstream 
 	this.exclusionErrorMaps = (config.exclusionErrorMaps) ? config.exclusionErrorMaps : [] //Here we will maintain our understanding of the performance of different variants
 	this.options = (config.options) ? config.options : {}
-	this.path = (config.path) ? config.path : ""
+	//console.log('config.path is: ' + config.path)
+	//this.path = (config.path) ? config.path : ""
 	this.exclusions = (config.exclusions) ? config.exclusions : []
 	this.nextTick = (config.nextTick) ? config.nextTick : 0 
 }
@@ -142,7 +143,9 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 		}
 
 		if(excludeThis == false){
-			thisConn.path = (thisConn.path) ? thisConn.path : thisConn.id
+			console.log('thisConn path: ' + thisConn.path)
+			thisConn.path = (thisConn.path !== undefined) ? thisConn.path : thisConn.id
+			console.log('thisConn path is now: ' + thisConn.path)
 			/*
 			* - I think the compound path bug might be in here..
 			*/
@@ -152,9 +155,10 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 				}
 
 				if(typeof thisResults[theseOutputs[thisOutput]].path == "undefined"){
-					thisResults[theseOutputs[thisOutput]].path = thisConn.id 
+					thisResults[theseOutputs[thisOutput]].path = thisConn.path
 				} else {
-					thisResults[theseOutputs[thisOutput]].path = thisResults[theseOutputs[thisOutput]].path + ';' + thisConn.id
+					thisResults[theseOutputs[thisOutput]].path = thisResults[theseOutputs[thisOutput]].path + ';' + thisConn.path
+					//console.log("thisResults[theseOutputs[thisOutput]].path: " + thisResults[theseOutputs[thisOutput]].path)
 				}
 			}
 			/*
@@ -185,7 +189,7 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 			//console.log('we excluded: ' + thisConn.id)
 		}
 	}
-	this.state = 'idle'
+	
 	if(callback){
 		console.log('calling back from spherons activate function - with these results: ' +  JSON.stringify(thisResults))
 		callback(thisResults)

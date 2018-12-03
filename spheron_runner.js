@@ -259,17 +259,14 @@ var spheron_runner = {
 				if(typeof thisSigId != undefined){
 					if(that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]){
 							that._propagateMessage(thisTimestamp, that.spheron.propagationMessageQueue[thisTimestamp][thisSigId][0], function(){
-								console.log('Deleting message')
-								/*
-								* needs testing...
-								*/
-								that.spheron.propagationMessageQueue[thisTimestamp][thisSigId].shift()
-
+								console.log('Deleting message');
+								(that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]).shift()
 								if(that.spheron.propagationMessageQueue[thisTimestamp][thisSigId].length == 0){
 									console.log('propagation que length for this sigId is 0')
 									delete that.spheron.propagationMessageQueue[thisTimestamp][thisSigId]
-									callback()
-								} else if(that.spheron.propagationMessageQueue[thisTimestamp].length == 0 || that.spheron.propagationMessageQueue[thisTimestamp].length == undefined){
+									that._propagationQueueSigIterator(thisTimestamp, callback)
+									//callback()
+								} else if(Object.keys(that.spheron.propagationMessageQueue[thisTimestamp])[0] === undefined){
 									console.log('propagation que length for this timestamp is 0')
 									delete that.spheron.propagationMessageQueue[thisTimestamp]
 									callback()
@@ -277,15 +274,10 @@ var spheron_runner = {
 									/*
 									* I am not sure that this path is ever used. Why is it here?
 									*/
-
 									console.log('propagation que length for ' + thisTimestamp + ' is: ' + that.spheron.propagationMessageQueue[thisTimestamp].length)
 									console.log('dump of propagation queue: ' + JSON.stringify(that.spheron.propagationMessageQueue[thisTimestamp]))
-
 									that._propagationQueueSigIterator(thisTimestamp, callback)
 								}
-
-
-								
 							})	
 					} else {
 						console.log('there is nothing within this timestamp...')
@@ -300,8 +292,6 @@ var spheron_runner = {
 				callback()
 			}
 		} else {
-			//that.spheron.propagationMessageQueue[thisTimestamp] = undefined
-			//that.spheron.propagationMessageQueue[thisTimestamp]
 			callback()
 		}
 	},
@@ -419,15 +409,8 @@ var spheron_runner = {
 		var oldestMessageAge = that._getOldestTickFromMessageQueue()
 		console.log('oldest message in queue: ' + oldestMessageAge)
 		console.log('system Tick: ' + that.systemTick)
-		//console.log(oldestMessageAge <= that.systemTick)
 		if(oldestMessageAge != 0 && oldestMessageAge <= that.systemTick){
-			//we have messages in the input queue
-			//console.log('we found messages in the inputQueue which are older than our current tick and therefore eligible for processing.')
-			//console.log('queue dump is: ' + JSON.stringify(that.spheron.inputMessageQueue))
-			
-			//call the sigId iterator.
 			that._inputMessageSigIdIterator(oldestMessageAge, function(){
-				//iterate incase there is more to do...
 				that._inputMessageQueueAgeIterator(callback)	
 			})
 		} else {
@@ -447,10 +430,17 @@ var spheron_runner = {
 					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0], 0, function(){
 						console.log('we updated the input...')
 						that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.splice(0,1)
-						if(((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).length == 0 ||  that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined') && (that.spheron.inputMessageQueue[timestamp][thisSigId].variant).length == 0){
+						if(((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).length == 0 ||  that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] == 'undefined') && (that.spheron.inputMessageQueue[timestamp][thisSigId].variant).length == 0){
 							//activate immediately - note activate takes care of internal multivariance...
 							that.activate(thisSigId, function(){
-								that._inputMessageSigIdIterator(timestamp, callback)	
+								console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
+								if(Object.keys(that.spheron.inputMessageQueue)[0]){
+									that.spheron.state = "pending"
+									that.spheron.nextTick = that.systemTick +1
+								} else {
+									that.spheron.state = "idle"
+								}
+								that._inputMessageSigIdIterator(timestamp, callback)
 							})
 						} else {
 							that._inputMessageSigIdIterator(timestamp, callback)
@@ -461,6 +451,17 @@ var spheron_runner = {
 					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0], 0, function(){
 						(that.spheron.inputMessageQueue[timestamp][thisSigId].variant).shift()
 						that.activate(thisSigId, function(){
+
+							/*
+							* Our new bug
+							*/
+							console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
+							if(Object.keys(that.spheron.inputMessageQueue)[0]){
+								that.spheron.state = "pending"
+								that.spheron.nextTick = that.systemTick +1
+							} else {
+								that.spheron.state = "idle"
+							}
 							that._inputMessageSigIdIterator(timestamp, callback)
 						})
 					})
@@ -534,6 +535,12 @@ var spheron_runner = {
 	activate: function(thisSigId, callback){
 		//call the activate function of this spheron
 		var that = this
+		
+
+		/*
+		* Our new bug - why are we calling a static testIdx in the next statement???????? 
+		*/
+		
 		that.activationIterator(0,0, thisSigId, function(){
 			callback()
 		})
@@ -545,26 +552,31 @@ var spheron_runner = {
 		if(that.spheron.variantMaps.length == 0){
 			//console.log('running non-variant activation')
 			that.spheron.activate(null, null, function(thisResult){
+				console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
+				if(Object.keys(that.spheron.inputMessageQueue)[0]){
+					that.spheron.state = "pending"
+					that.spheron.nextTick = that.systemTick +1
+
+				} else {
+					that.spheron.state = "idle"
+				}
 				/*
 				* Write this output onto the message queue - not tested
 				*/
-
 				console.log('In the non variant callback from Activate with this result: ' + JSON.stringify(thisResult))
 				var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()
 				that.spheron.propagationMessageQueue[systemTickPlusOne] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne] : {}
 				that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] : []
 				for(var thisKey in thisResult){
 					thisResult[thisKey].isVariant = (thisResult[thisKey].isVariant) ? thisResult[thisKey].isVariant : false
-					that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult[thisKey].path, "testIdx": thisResult[thisKey].testIdx, "val": thisResult[thisKey].val, "isVariant": thisResult[thisKey].isVariant, "sigId" : thisSigId})
+					that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult[thisKey].path, "testIdx": testIdx, "val": thisResult[thisKey].val, "isVariant": thisResult[thisKey].isVariant, "sigId" : thisSigId})
 					console.log(that.spheron.problemId)
 				}
-				console.log(that.spheron.propagationMessageQueue[systemTickPlusOne])
+				console.log("propagation Message Queue is: " + JSON.stringify(that.spheron.propagationMessageQueue[systemTickPlusOne]))
 				callback()
-
 				/*
 				* end new.
 				*/
-
 			})
 		} else {
 			var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()
@@ -574,6 +586,13 @@ var spheron_runner = {
 					var v = exclusionMap.slice(0);
 					v.splice(testIdx,1)
 					that.spheron.activate(null, v, function(thisResult){
+					console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
+					if(Object.keys(that.spheron.inputMessageQueue)[0]){
+						that.spheron.state = "pending"
+						that.spheron.nextTick = that.systemTick +1
+					} else {
+						that.spheron.state = "idle"
+					}
 						console.log('In the callback from Activate with this result: ' + JSON.stringify(thisResult))
 						that.spheron.propagationMessageQueue[systemTickPlusOne] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne] : {}
 						that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] : []

@@ -24,6 +24,14 @@
 							
 						]
 					}
+				},
+				"2": {
+					"sigId-234567890":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 1, "val": 0, "isVariant": false, "sigId" : "234567890" }
+						],
+						"variant": []
+					}
 				}
 			},
 			"variantMaps" : [ 
@@ -41,7 +49,7 @@
 			"nextTick" : 1,
 			"io": [
 				{"id" : "input2", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
-				{"id" : "bias1", "type": "bias", "angle": 20, "val":-1},
+				{"id" : "bias2", "type": "bias", "angle": 20, "val":-1},
 				{"id" : "internal2", "type": "output", "angle": 60, "val": -1, "toId": "outputSpheron1"}
 			],
 			"inputMessageQueue": {
@@ -54,9 +62,9 @@
 					}
 				},
 				"2": {
-					"sigId-123456789":{
+					"sigId-234567890":{
 						"nonVariant":[
-							{"problemId" : "whatIsAnd", "path" : "input2", "testIdx": 1, "val": 0, "isVariant": false, "sigId" : "123456789" }
+							{"problemId" : "whatIsAnd", "path" : "input2", "testIdx": 1, "val": 0, "isVariant": false, "sigId" : "234567890" }
 						],
 						"variant": []
 					}
@@ -76,8 +84,8 @@
 			"state" : "idle",
 			"nextTick" : 2,
 			"io": [
-				{"id" : "internal1", "type": "input", "angle": 0, "val": 0, "fromId": "inputSpheron1"},
-				{"id" : "internal2", "type": "input", "angle": 0, "val": 0, "fromId": "inputSpheron2"},
+				{"id" : "internal1", "type": "input", "angle": 45, "val": 0, "fromId": "inputSpheron1"},
+				{"id" : "internal2", "type": "input", "angle": -45, "val": 0, "fromId": "inputSpheron2"},
 				{"id" : "ANDout", "type": "extOutput", "angle": 60, "val": -1, "toId": "ext", "outputFn" : {"mode": "eq", "val": 1, "ignoreWhileTrain": true}}
 			],
 			"inputMessageQueue": {}, 
