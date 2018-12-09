@@ -9,8 +9,6 @@ var Spheron = require('./spheron.js')
 const UdpUtils = require('./udpUtils.js')
 var udpUtils = new UdpUtils()
 
-//TODO: we need a callback handler for new spherons so that when they 'emit' status messages, we can update our workflow...
-
 var spheron_runner = {
 	spheron: null,
 	loadDemoData: true,
@@ -21,7 +19,7 @@ var spheron_runner = {
 		var that = this
 		mongoUtils.init(function(){
 			if(that.loadDemoData == true){
-				var testData = require('./tests/newFormatData1/basicProblemDefinitionV2-nonVariant.json')
+				var testData = require('./tests/newFormatData1/basicProblemDefinitionV2-multiVariant.json')
 				mongoUtils.setupDemoData(testData, function(){
 					that.startTicking()
 					callback()
@@ -149,20 +147,19 @@ var spheron_runner = {
 		    	this.processSpheron(phaseIdx, callback)
 		        break;
 		    case 5:
-		        /*
-		        * Persist spheron to mongo.
-		        */
-		        console.log('Phase5: persisting this spheron back to mongo...')
-
 		        phaseIdx += 1
 		    	this.processSpheron(phaseIdx, callback)
 		        break;
 		    default:
-		    console.log('in default phase handler (i.e. The fallback.) - phase is: ' + phaseIdx)
+		    	console.log('in default phase handler (i.e. The fallback.) - phase is: ' + phaseIdx)
 		    	if(phaseIdx <= 5){
 		    		phaseIdx += 1
 		    		that.processSpheron(phaseIdx, callback)
 		    	} else {
+		    		/*
+			        * Persist spheron to mongo.
+			        */
+		        	console.log('Phase6: persisting this spheron back to mongo...')
 		    		that.persistSpheron(function(){
 		    			phaseIdx = 0
 		    			callback()	
@@ -324,6 +321,25 @@ var spheron_runner = {
 			callback()
 		}
 	},
+	_findFreeQueueAddress(thisSpheron, newTimeStamp, newQueueItem, callback){
+		var that = this
+		if(thisSpheron.inputMessageQueue[newTimeStamp]){
+			if(Object.keys(thisSpheron.inputMessageQueue[newTimeStamp])){
+				if(Object.keys(thisSpheron.inputMessageQueue[newTimeStamp])[0] == newQueueItem.sigId){
+					//Note: As sigId is the same, we will assume testIdx is the same as sigIds should be unique to a testIdx
+
+					callback(newTimeStamp)
+				} else {
+					newTimeStamp = parseInt(newTimeStamp) + 1
+					that._findFreeQueueAddress(thisSpheron, newTimeStamp, newQueueItem, callback)
+				}
+			} else {
+				callback(newTimeStamp)	
+			}
+		} else {
+			callback(newTimeStamp)
+		}
+	},
 	_updateSpheronInputQueue(spheronId, newQueueItem, thisTimestamp, callback){
 		var that = this
 		console.log('trying to update spheron with id: ' + spheronId)
@@ -343,36 +359,46 @@ var spheron_runner = {
 				*/
 				console.log('calledback from sendmessage...')
 				callback()
-			
-
 		} else {
 			mongoUtils.getSpheron(spheronId, function(thisSpheron){
 
-				console.log('thisSpheron: ' + JSON.stringify(thisSpheron))
-				
-				thisSpheron.inputMessageQueue[thisTimestamp] = (thisSpheron.inputMessageQueue[thisTimestamp]) ? thisSpheron.inputMessageQueue[thisTimestamp] : {}
-				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId] = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId]) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId] : {}
-				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant : []
-				thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant = (thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant) ? thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant : []
-
-				if(newQueueItem.isVariant == false){
-					thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].nonVariant.push(newQueueItem)
-				} else {
-					thisSpheron.inputMessageQueue[thisTimestamp][newQueueItem.sigId].variant.push(newQueueItem)
-				}
-
 				/*
-				* TODO: Check if the connection is multi-variant at the point of entry into the new spheron and if so, set the input message on both connections.
+				* Our queue bug is in this section.
+				* Currently, when propagating, the spheron does not check:
+				* Is the signalId consistent for the target tick?
+				* If not, we must find either:
+				* 1: A future tick which has this sigId
+				* 2: A future tick which is vacant.
 				*/
 
-				thisSpheron.state = "pending"
-				
-				/*TODO: Or maybe the oldest message time..*/
-				thisSpheron.nextTick = that.systemTick +1
+				console.log('thisSpheron: ' + JSON.stringify(thisSpheron))
 
-				console.log('about to persist: ' + JSON.stringify(thisSpheron))
-				mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
-					callback()
+				that._findFreeQueueAddress(thisSpheron, thisTimestamp, newQueueItem, function(newTimeStamp){
+
+					thisSpheron.inputMessageQueue[newTimeStamp] = (thisSpheron.inputMessageQueue[newTimeStamp]) ? thisSpheron.inputMessageQueue[newTimeStamp] : {}
+					thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId] = (thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId]) ? thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId] : {}
+					thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].nonVariant = (thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].nonVariant) ? thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].nonVariant : []
+					thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].variant = (thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].variant) ? thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].variant : []
+
+					if(newQueueItem.isVariant == false){
+						thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].nonVariant.push(newQueueItem)
+					} else {
+						thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].variant.push(newQueueItem)
+					}
+
+					/*
+					* TODO: Check if the connection is multi-variant at the point of entry into the new spheron and if so, set the input message on both connections.
+					*/
+
+					thisSpheron.state = "pending"
+					
+					/*TODO: Or maybe the oldest message time..*/
+					thisSpheron.nextTick = that.systemTick +1
+
+					console.log('about to persist: ' + JSON.stringify(thisSpheron))
+					mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
+						callback()
+					})	
 				})
 			})
 		}
@@ -451,10 +477,6 @@ var spheron_runner = {
 					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0], 0, function(){
 						(that.spheron.inputMessageQueue[timestamp][thisSigId].variant).shift()
 						that.activate(thisSigId, function(){
-
-							/*
-							* Our new bug
-							*/
 							console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
 							if(Object.keys(that.spheron.inputMessageQueue)[0]){
 								that.spheron.state = "pending"
@@ -535,12 +557,9 @@ var spheron_runner = {
 	activate: function(thisSigId, callback){
 		//call the activate function of this spheron
 		var that = this
-		
-
 		/*
 		* Our new bug - why are we calling a static testIdx in the next statement???????? 
 		*/
-		
 		that.activationIterator(0,0, thisSigId, function(){
 			callback()
 		})
@@ -556,27 +575,20 @@ var spheron_runner = {
 				if(Object.keys(that.spheron.inputMessageQueue)[0]){
 					that.spheron.state = "pending"
 					that.spheron.nextTick = that.systemTick +1
-
 				} else {
 					that.spheron.state = "idle"
 				}
-				/*
-				* Write this output onto the message queue - not tested
-				*/
 				console.log('In the non variant callback from Activate with this result: ' + JSON.stringify(thisResult))
 				var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()
 				that.spheron.propagationMessageQueue[systemTickPlusOne] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne] : {}
 				that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] : []
 				for(var thisKey in thisResult){
 					thisResult[thisKey].isVariant = (thisResult[thisKey].isVariant) ? thisResult[thisKey].isVariant : false
-					that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult[thisKey].path, "testIdx": testIdx, "val": thisResult[thisKey].val, "isVariant": thisResult[thisKey].isVariant, "sigId" : thisSigId})
+					that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult[thisKey].path, "testIdx": thisResult[thisKey].testIdx, "val": thisResult[thisKey].val, "isVariant": thisResult[thisKey].isVariant, "sigId" : thisSigId})
 					console.log(that.spheron.problemId)
 				}
 				console.log("propagation Message Queue is: " + JSON.stringify(that.spheron.propagationMessageQueue[systemTickPlusOne]))
 				callback()
-				/*
-				* end new.
-				*/
 			})
 		} else {
 			var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()

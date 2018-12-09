@@ -26,8 +26,6 @@ var Spheron = function (config) {
 	this.bpErrorMessageQueue = (config.bpErrorMessageQueue) ? config.bpErrorMessageQueue : [] //backpropped messages waiting to be processed and passed upstream 
 	this.exclusionErrorMaps = (config.exclusionErrorMaps) ? config.exclusionErrorMaps : [] //Here we will maintain our understanding of the performance of different variants
 	this.options = (config.options) ? config.options : {}
-	//console.log('config.path is: ' + config.path)
-	//this.path = (config.path) ? config.path : ""
 	this.exclusions = (config.exclusions) ? config.exclusions : []
 	this.nextTick = (config.nextTick) ? config.nextTick : 0 
 }
@@ -42,7 +40,6 @@ Spheron.prototype.calculateSignalVector = function(){
 
 	for(var key in this.io) {
 		let excludeThis = false
-		//console.log(rv)
 		for(var excludeId in this.exclusions){
 			if(this.io[key].id == this.exclusions[excludeId]){
 				excludeThis = true
@@ -61,13 +58,13 @@ Spheron.prototype.calculateSignalVector = function(){
 }
 
 Spheron.prototype.updateInputs = function(inputSignals){
-	//console.log(inputSignals)
 	if(inputSignals){
 		for(var key in inputSignals) {
 			var thisConnSignal = inputSignals[key]
 			for(var connection in this.io){
 				if((this.io[connection]).id == key){
 					(this.io[connection]).val = thisConnSignal.val
+					(this.io[connection]).testIdx = thisConnSignal.testIdx
 				}
 			}
 		}
@@ -101,8 +98,6 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	* update input values - in this instance.
 	*/
 	var that = this
-
-	//console.log('in the spherons activate function')
 	if(inputSignals){
 		this.updateInputs(inputSignals)	
 	}
@@ -113,7 +108,6 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 
 	this.calculateSignalVector()
 	var thisResults = {}
-
 	/*
 	* now cycle the outputs and add them to thisResults as well as updating their value - if they are not excluded from test
 	*/
@@ -146,9 +140,6 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 			console.log('thisConn path: ' + thisConn.path)
 			thisConn.path = (thisConn.path !== undefined) ? thisConn.path : thisConn.id
 			console.log('thisConn path is now: ' + thisConn.path)
-			/*
-			* - I think the compound path bug might be in here..
-			*/
 			for(var thisOutput in theseOutputs){
 				if(typeof thisResults[theseOutputs[thisOutput]] == "undefined"){
 					thisResults[theseOutputs[thisOutput]] = {}
@@ -158,12 +149,9 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 					thisResults[theseOutputs[thisOutput]].path = thisConn.path
 				} else {
 					thisResults[theseOutputs[thisOutput]].path = thisResults[theseOutputs[thisOutput]].path + ';' + thisConn.path
-					//console.log("thisResults[theseOutputs[thisOutput]].path: " + thisResults[theseOutputs[thisOutput]].path)
 				}
+				thisResults[theseOutputs[thisOutput]].testIdx = that.io[0].testIdx
 			}
-			/*
-			* -end think
-			*/
 
 			if(thisConn.type == 'output' || thisConn.type == 'extOutput'){
 				//find signalVector as a polar angle

@@ -14,7 +14,7 @@ $().ready(function(){
 	
 	submitProblem = function(){
 		var thisData = $('#jobData').val()
-		alert(thisData)
+		//alert(thisData)
 		$.post( "loadProblem", {jobData: thisData}, function(data){
 			appendToDiagnostics("Problem submitted to spheron network...")	
 		});
