@@ -11,7 +11,7 @@ var udpUtils = new UdpUtils()
 
 var spheron_runner = {
 	spheron: null,
-	loadDemoData: true,
+	loadDemoData: false,
 	systemTickTimer: null,
 	systemTick: null,
 	inTick: false,
@@ -54,10 +54,9 @@ var spheron_runner = {
 			*/
 			console.log('systemTick: ' + that.systemTick)
 			mongoUtils.getNextPendingSpheron(that.systemTick, function(result){ 
-				console.log('in getNextPendingSpheron callback')
 				if(that.isSpheron(result) == true){
 					that.spheron = new Spheron(result)
-					console.log('runtime functions.')
+					console.log('spheron - runtime functions.')
 					that.processSpheron(0, function(){
 						that.inTick = false
 					})
@@ -222,8 +221,6 @@ var spheron_runner = {
 	},
 	_propagationQueueAgeIterator: function(callback){
 		var that = this
-		console.log('Object.keys(that.spheron.propagationMessageQueue)[0] undefined' +  (that.spheron.propagationMessageQueue[0] == undefined))
-		console.log('Object.keys(that.spheron.propagationMessageQueue)[0] not undefined' +  (that.spheron.propagationMessageQueue[0] != undefined))
 		console.log(Object.keys(that.spheron.propagationMessageQueue)[0])
 		console.log(that.spheron.propagationMessageQueue)
 		if(Object.keys(that.spheron.propagationMessageQueue)[0] !== undefined){
@@ -450,29 +447,38 @@ var spheron_runner = {
 		*/
 		var that = this
 		that._getSigIdFromMessageQueue(timestamp, function(thisSigId){
+			console.log('thisSigId is: ' + thisSigId)
 			if(thisSigId){
-				if(that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.length > 0 && typeof that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined' ){
-					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";").length -1]
-					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0], 0, function(){
-						console.log('we updated the input...')
-						that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.splice(0,1)
-						if(((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).length == 0 ||  that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] == 'undefined') && (that.spheron.inputMessageQueue[timestamp][thisSigId].variant).length == 0){
-							//activate immediately - note activate takes care of internal multivariance...
-							that.activate(thisSigId, function(){
-								console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
-								if(Object.keys(that.spheron.inputMessageQueue)[0]){
-									that.spheron.state = "pending"
-									that.spheron.nextTick = that.systemTick +1
-								} else {
-									that.spheron.state = "idle"
-								}
+				if(that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant){
+					if(typeof that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined'){
+						var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";").length -1]
+						that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0], 0, function(){
+							console.log('we updated the input...')
+							//that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.splice(0,1)
+							that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.shift()
+							if(((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).length == 0 ||  that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] == 'undefined') && (that.spheron.inputMessageQueue[timestamp][thisSigId].variant).length == 0){
+								//activate immediately - note activate takes care of internal multivariance...
+								that.activate(thisSigId, function(){
+									console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
+									if(Object.keys(that.spheron.inputMessageQueue)[0]){
+										that.spheron.state = "pending"
+										that.spheron.nextTick = that.systemTick +1
+									} else {
+										that.spheron.state = "idle"
+									}
+									that._inputMessageSigIdIterator(timestamp, callback)
+								})
+							} else {
 								that._inputMessageSigIdIterator(timestamp, callback)
-							})
-						} else {
-							that._inputMessageSigIdIterator(timestamp, callback)
-						}
-					})
-				} else if(that.spheron.inputMessageQueue[timestamp][thisSigId].variant.length > 0){
+							}
+						})
+					} else{
+						delete that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant
+						that._inputMessageSigIdIterator(timestamp, callback)
+					}
+					
+				} else if (that.spheron.inputMessageQueue[timestamp][thisSigId].variant){
+					console.log('***in the multivariant queue handler...')
 					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";").length -1]
 					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0], 0, function(){
 						(that.spheron.inputMessageQueue[timestamp][thisSigId].variant).shift()
@@ -488,13 +494,17 @@ var spheron_runner = {
 						})
 					})
 				} else {
-					that.spheron.inputMessageQueue[timestamp][thisSigId] = undefined
-					that._inputMessageSigIdIterator(timestamp, callback)
+					console.log('***no sigId...')
+					delete that.spheron.inputMessageQueue[timestamp]
+					callback()
 				}
+
 			} else {
+				console.log('***no sigId...')
 				delete that.spheron.inputMessageQueue[timestamp]
 				callback()
 			}
+
 		})
 	},
 	_searchUpdateInputIterator: function(targetInput, updateMessage, idx, callback){
@@ -523,13 +533,11 @@ var spheron_runner = {
 	},
 	_getSigIdFromMessageQueue: function(timestamp, callback){
 		var that = this
+		
 		if(that.spheron.inputMessageQueue[timestamp]){
 			var thisSigId = Object.keys(that.spheron.inputMessageQueue[timestamp])[0]
-			if(((that.spheron.inputMessageQueue[timestamp][thisSigId]).nonVariant).length > 0  && typeof that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined' ){
-				callback(thisSigId)
-			} else {
-				callback()
-			}
+			console.log('in _getSigIdFromMessageQueue for timestamp: ' + timestamp + ' : ' + thisSigId)
+			callback(thisSigId)
 		} else {
 			callback()
 		}
@@ -564,6 +572,32 @@ var spheron_runner = {
 			callback()
 		})
 	},
+	_cleanupInputMessageQueue: function(){
+		var that = this
+		if(that.spheron.inputMessageQueue[Object.keys(that.spheron.inputMessageQueue)[0]]){
+			var auditKey = Object.keys(that.spheron.inputMessageQueue)[0]
+			var auditSigId = Object.keys(that.spheron.inputMessageQueue[auditKey])[0]
+			if(that.spheron.inputMessageQueue[auditKey][auditSigId].nonVariant){
+				if(that.spheron.inputMessageQueue[auditKey][auditSigId].nonVariant.length == 0){
+					delete that.spheron.inputMessageQueue[auditKey][auditSigId].nonVariant
+				}
+			}
+			if(that.spheron.inputMessageQueue[auditKey][auditSigId].variant){
+				if(that.spheron.inputMessageQueue[auditKey][auditSigId].variant.length == 0){
+					delete that.spheron.inputMessageQueue[auditKey][auditSigId].variant
+				}
+			}
+
+			if(!Object.keys(that.spheron.inputMessageQueue[auditKey][auditSigId])[0]){
+				delete that.spheron.inputMessageQueue[auditKey][auditSigId]
+			}
+
+			if(!Object.keys(that.spheron.inputMessageQueue[auditKey])[0]){
+				delete that.spheron.inputMessageQueue[auditKey]
+			}			
+		}
+		return
+	},
 	activationIterator:function(mapIdx, testIdx, thisSigId, callback){
 		//automatically handle internal A/B - i.e. if this spheron has a variantMap then we need to fire for each (exclusively)
 		var that = this
@@ -571,11 +605,15 @@ var spheron_runner = {
 		if(that.spheron.variantMaps.length == 0){
 			//console.log('running non-variant activation')
 			that.spheron.activate(null, null, function(thisResult){
+				that._cleanupInputMessageQueue()
+
 				console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
 				if(Object.keys(that.spheron.inputMessageQueue)[0]){
+					console.log('will set pending as inputMessageQueue is: ' +JSON.stringify(that.spheron.inputMessageQueue))
 					that.spheron.state = "pending"
 					that.spheron.nextTick = that.systemTick +1
 				} else {
+					console.log('will set idle')
 					that.spheron.state = "idle"
 				}
 				console.log('In the non variant callback from Activate with this result: ' + JSON.stringify(thisResult))
@@ -585,9 +623,9 @@ var spheron_runner = {
 				for(var thisKey in thisResult){
 					thisResult[thisKey].isVariant = (thisResult[thisKey].isVariant) ? thisResult[thisKey].isVariant : false
 					that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId].push({"problemId" : that.spheron.problemId, "path" : thisResult[thisKey].path, "testIdx": thisResult[thisKey].testIdx, "val": thisResult[thisKey].val, "isVariant": thisResult[thisKey].isVariant, "sigId" : thisSigId})
-					console.log(that.spheron.problemId)
 				}
-				console.log("propagation Message Queue is: " + JSON.stringify(that.spheron.propagationMessageQueue[systemTickPlusOne]))
+				console.log("propagation Message Queue is: " + JSON.stringify(that.spheron.propagationMessageQueue))
+				console.log('calling back')
 				callback()
 			})
 		} else {
@@ -598,14 +636,22 @@ var spheron_runner = {
 					var v = exclusionMap.slice(0);
 					v.splice(testIdx,1)
 					that.spheron.activate(null, v, function(thisResult){
-					console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
-					if(Object.keys(that.spheron.inputMessageQueue)[0]){
-						that.spheron.state = "pending"
-						that.spheron.nextTick = that.systemTick +1
-					} else {
-						that.spheron.state = "idle"
-					}
-						console.log('In the callback from Activate with this result: ' + JSON.stringify(thisResult))
+			
+						that._cleanupInputMessageQueue()
+
+						console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
+						if(Object.keys(that.spheron.inputMessageQueue)[0]){
+							that.spheron.state = "pending"
+							that.spheron.nextTick = that.systemTick +1
+						} else {
+							that.spheron.state = "idle"
+						}
+
+/*
+* Our multi-variant bug is here.
+*/
+
+						console.log('In the multiVariant callback from Activate with this result: ' + JSON.stringify(thisResult))
 						that.spheron.propagationMessageQueue[systemTickPlusOne] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne] : {}
 						that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] : []
 						for(var thisKey in thisResult){
