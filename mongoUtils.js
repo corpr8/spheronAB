@@ -3,7 +3,7 @@ var mongo = require('mongodb');
 var fs = require('fs');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
-var url = "mongodb://localhost:27017/";
+var url = "mongodb://192.168.61.1:27017/";
 var db = [];
 var dbo = [];
 var mongoNet = [];
@@ -58,6 +58,30 @@ var mongoUtils = {
 		}, function(err, result) {
 	    	if (err) throw err;
 	    	callback(result)
+		});
+	},
+	getLessonModeById: function(lessonId, callback){
+		mongoNet.findOne({
+			type: "lesson",
+			problemId: lessonId
+		}, function(err, result) {
+	    	if (err){
+	    		callback();
+	    	} else {	
+	    		callback(result.options.mode)
+	    	}
+		});
+	},
+	getLessonTestAnswer: function(lessonId, testIdx, callback){
+		mongoNet.findOne({
+			type: "lesson",
+			problemId: lessonId
+		}, function(err, results) {
+	    	if (err){
+	    		callback();
+	    	} else {	
+	    		callback(results.tests[testIdx].outputs)
+	    	}
 		});
 	},
 	_old_saveSpheron: function(spheronData, callback){

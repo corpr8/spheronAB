@@ -6,12 +6,16 @@
 
 var mongoUtils = require('./mongoUtils.js')
 var Spheron = require('./spheron.js')
-const UdpUtils = require('./udpUtils.js')
-var udpUtils = new UdpUtils()
+var dns = require('dns');
+var UdpUtils;
+var udpUtils;
+//commented out the UDP stuff as we are flying...
+//var UdpUtils = require('./udpUtils.js')
+//var udpUtils = new UdpUtils()
 
 var spheron_runner = {
 	spheron: null,
-	loadDemoData: false,
+	loadDemoData: true,
 	systemTickTimer: null,
 	systemTick: null,
 	inTick: false,
@@ -20,13 +24,25 @@ var spheron_runner = {
 		mongoUtils.init(function(){
 			if(that.loadDemoData == true){
 				var testData = require('./tests/newFormatData1/basicProblemDefinitionV2-multiVariant.json')
+				//var testData = require('./tests/newFormatData1/AND-basicProblemDefinitionV2-nonVariant.json')
 				mongoUtils.setupDemoData(testData, function(){
 					that.startTicking()
 					callback()
 				})	
 			} else {
 				that.startTicking()
+				/*
+				that.checkDNS(function(result){
+					console.log(result)
+					process.exit()
+					if(result == 'pass'){
+						UdpUtils = require('./udpUtils.js')
+						udpUtils = new UdpUtils()
+					} 
+					callback()
+				})*/
 				callback()
+				
 			}
 		})
 	},
@@ -111,6 +127,7 @@ var spheron_runner = {
 				that.propagationQueueIterator(function(){
 					console.log('finished Phase2')
 					console.log('dump: ' + JSON.stringify(that.spheron))
+					//Suggest we check the lesson state here and if it is not autoTrain, jump to phase 6
 			        phaseIdx += 1
 				    that.processSpheron(phaseIdx, callback)
 				})
@@ -118,34 +135,39 @@ var spheron_runner = {
 			case 3:
 		        /*
 		        * Handle backprop messages
-		        *
-		        * Copy propagation messages from the que to each of the downstream spherons input message queue
+		        * if the lesson is in mode=autoTrain:
 		        * Copy any bpErrorMessageQueue items from the downstream spheron up to this spherons bpErrorMessageQue
 		        * Set the downstream spherons state to pending.
 		        * Then increment phaseIdx and call this function
+
+		        * note: also implements autoAssesment of output answers
 		        */
-		        console.log('Phase3: handling backprop messages')
+		        console.log('Phase3: propagating backprop messages for spheron: ' + that.spheron.spheronId)
 				that.backpropIterator(null, 0, function(){
-					//process.exit()
 					phaseIdx += 1
 		    		that.processSpheron(phaseIdx, callback)
-
 				})
 		        break;
 		    case 4:
 		        /*
 		        * Handle multivariant resolution
 		        *
-		        * If the bpErrorMessage contains any of the connectionId's specified in the exclusionMap, copy that value into the exclusionErrorMap.
-		        * If the exclusion error map is full for both sides of a variant, we can calculate which performs best i.e: bias1 [0.1,0.23,0.25,0.39], bias1a [0.11,0.123,0.15,0139] 
+		        * if the lesson is in mode=autoTrain:
+		        * If the exclusion error map is full for both sides of a variant, we can calculate which performs best i.e: bias1 [0.1,0.23,0.25,0.39], bias1a [0.11,0.123,0.15,0.139] 
 		        * bias1a definitely has the lowest errors and should outsurvive bias1
+		        * clear each BackPropMessage as they have now served their purpose
 		        * Increment phaseIdx and iterate
 		        */
-		        console.log('Phase4: handle multi-variant resolution')
+		        console.log('Phase4: handle multi-variant data storage and resolution')
 		        phaseIdx += 1
 		    	this.processSpheron(phaseIdx, callback)
 		        break;
 		    case 5:
+		    	console.log('Phase5: loading new tests into the spheron')
+			    /*
+			    * If we are an input spheron and the lesson is still in mode=autoTrain then check if the input queueLength is less than
+			    * the number of test states and if so, push more lessons onto the stack.
+			    */
 		        phaseIdx += 1
 		    	this.processSpheron(phaseIdx, callback)
 		        break;
@@ -166,6 +188,61 @@ var spheron_runner = {
 		    	}
 		}
 	},
+	testPushBPErrorToVariantErrorMap: function(inputMsg, callback){
+		console.log('pushing error to error map.')
+		var that = this
+		console.log('inputMsg is: ' + JSON.stringify(inputMsg))
+		that.testMessageIsSubstringInVariantMaps(0, 0, inputMsg, function(foundId){
+			//console.log('error map:' + foundId)
+			if(foundId != null){
+				//console.log('we found a variant match with id: ' + foundId)
+				if(!that.spheron.variantErrorMaps[foundId]){
+					that.spheron.variantErrorMaps[foundId] = []
+				}
+				that.spheron.variantErrorMaps[foundId][inputMsg.testIdx] = inputMsg.error
+				callback()
+			} else {
+				callback()
+			}
+		})
+	},
+	testMessageIsSubstringInVariantMaps: function(variantIdx, variantGroupIdx, inputMsg, callback){
+		//find out if our message contains any of the values within variantMaps for this Spheron
+		console.log('...searching for variantmaps...')
+		var that = this
+
+		//console.log('variantErrorMaps are: ' + (that.spheron.variantErrorMaps).length)
+
+		variantGroupIdx = (variantGroupIdx) ? variantGroupIdx : 0
+		variantIdx = (variantIdx) ? variantIdx : 0
+
+		//console.log(that.spheron.spheronId + ': our variant map is: ' + JSON.stringify(that.spheron.variantMaps))
+		//process.exit()
+		if(that.spheron.variantMaps){
+			if(that.spheron.variantMaps[variantGroupIdx]){
+				if(that.spheron.variantMaps[variantGroupIdx][variantIdx]){
+					var targetSearch = that.spheron.variantMaps[variantGroupIdx][variantIdx] + ';'
+					//console.log('searching for: ' + targetSearch + ' in: ' + JSON.stringify(inputMsg))
+					var isIncluded = (inputMsg.path).includes(targetSearch)
+					if(isIncluded){
+						//console.log('we found a variant in this spheron')
+						callback(that.spheron.variantMaps[variantGroupIdx][variantIdx])
+					} else {
+						that.testMessageIsSubstringInVariantMaps(variantIdx +1, variantGroupIdx, inputMsg, callback)	
+					}
+				} else {
+					that.testMessageIsSubstringInVariantMaps(0, variantGroupIdx +1, inputMsg, callback)
+				}
+			} else {
+				//console.log(that.spheron.spheronId + ": no variants in variantmap")
+				callback()
+			}
+		} else {
+			//no AB tests running so return -1.
+			console.log(that.spheron.spheronId + ": no variants key in spheron")
+			callback()
+		}
+	},
 	backpropIterator: function(upstreamSpheronArray, arrayIdx, callback){
 		/*
 		* TODO: 
@@ -179,10 +256,10 @@ var spheron_runner = {
 		var that = this
 
 		upstreamSpheronArray = (upstreamSpheronArray) ? upstreamSpheronArray : that.getUpstreamSpherons()
-		if(Object.keys(that.spheron.bpErrorMessageQueue)[0] !== undefined){
+		if(that.spheron.bpErrorMessageQueue[0] !== undefined){
 			var thisBPMessage = that.spheron.bpErrorMessageQueue[0]
 			/*
-			* TODO: Needs testing and vaslidation.
+			* TODO: Needs testing and validation.
 			*/
 
 			if(upstreamSpheronArray[arrayIdx]){
@@ -190,13 +267,20 @@ var spheron_runner = {
 				mongoUtils.getSpheron(upstreamSpheronArray[arrayIdx], function(thisSpheron){
 					thisSpheron.bpErrorMessageQueue.push(thisBPMessage)
 					mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
-						that.backpropIterator(upstreamSpheronArray , (arrayIdx +1), callback)
+						that.backpropIterator(upstreamSpheronArray, (arrayIdx +1), callback)
 					})
 				})
 			} else {
 				// we have finished this line of the BP array
-				that.spheron.bpErrorMessageQueue.shift()
-				that.backpropIterator(upstreamSpheronArray, 0, callback)
+
+				/*
+				* TODO: Now we have to add the error to our error array...
+				*/
+				console.log('pushing errors to varianterrormaps for spheron: ' + that.spheron.spheronId)
+				that.testPushBPErrorToVariantErrorMap(thisBPMessage, function(){
+					that.spheron.bpErrorMessageQueue.shift()
+					that.backpropIterator(upstreamSpheronArray, 0, callback)	
+				})
 			}
 		} else {
 			callback()
@@ -221,18 +305,14 @@ var spheron_runner = {
 	},
 	_propagationQueueAgeIterator: function(callback){
 		var that = this
-		console.log(Object.keys(that.spheron.propagationMessageQueue)[0])
-		console.log(that.spheron.propagationMessageQueue)
+		//console.log(Object.keys(that.spheron.propagationMessageQueue)[0])
+		//console.log(that.spheron.propagationMessageQueue)
 		if(Object.keys(that.spheron.propagationMessageQueue)[0] !== undefined){
 			var thisTimestamp = (Object.keys(that.spheron.propagationMessageQueue)[0]).toString()
-			console.log('ageQueueIdx0: ' + thisTimestamp)
+			//console.log('ageQueueIdx0: ' + thisTimestamp)
 			that._propagationQueueSigIterator(thisTimestamp, function(){
-				console.log('in _propagationQueueSigIterator callback')
-				/*
-				* Note: this needs to be tested once we are on terra firma...s
-				*/
+				//console.log('in _propagationQueueSigIterator callback')
 				delete that.spheron.propagationMessageQueue[thisTimestamp]
-				//that._propagationQueueAgeIterator(callback)
 				callback()
 			})
 		} else {
@@ -337,25 +417,52 @@ var spheron_runner = {
 			callback(newTimeStamp)
 		}
 	},
+	_autoAssesor(spheronId,newQueueItem,thisTimestamp,callback){
+		/*
+		* 1: is lesson in autotrain mode?
+		* 2: if yes, find actual expected result of testIdx 
+		* 3: calculate error
+		* 4: construct error message
+		* 5: put error message onto backprop queue
+		*/
+		var that = this
+		var trainMode = mongoUtils.getLessonModeById(newQueueItem.problemId, function(currentMode){
+			console.log('lesson is in ' + currentMode + ' mode')
+			if(currentMode == 'autoTrain'){
+				//get the actual expected value...
+
+				console.log('Our propagation message is ' + JSON.stringify(newQueueItem))
+				mongoUtils.getLessonTestAnswer(newQueueItem.problemId, newQueueItem.testIdx, function(expectedAnswer){
+					console.log('handling expected answer ' + JSON.stringify(expectedAnswer))
+					var outputPort = (newQueueItem.path).split(';')[(newQueueItem.path).split(';').length -1]
+					console.log('message port:' + outputPort)
+					//finally our health function!!!!
+					//push error onto the backpropstack
+					var thisError = Math.floor(Math.abs(newQueueItem.val - (expectedAnswer[outputPort].val))*10000)/10000
+					console.log('error:' + thisError)
+					var errorMessage = JSON.parse(JSON.stringify(newQueueItem))
+					errorMessage.error = thisError
+					that.spheron.bpErrorMessageQueue.push(errorMessage)
+					callback()
+				})
+			} else {
+				callback()
+			}
+		})
+	},
 	_updateSpheronInputQueue(spheronId, newQueueItem, thisTimestamp, callback){
 		var that = this
 		console.log('trying to update spheron with id: ' + spheronId)
 		if(spheronId == 'ext'){
-			/*
-			* TODO: We have an output here. We should look into if we are going to emit or check the input Queue and push more lesson data...
-			*
-			* Emit / update lesson or whatever...
-			*/
-			console.log('****We have an answer at an output spheron... Lets broadcast this out to the i/o cortex???: ' + JSON.stringify(newQueueItem))
-
-			//broadcast (temporary).
-			udpUtils.sendMessage(JSON.stringify(newQueueItem))
-				/*
-				*
-				* should we compare against the plan as stored in the lesson and send a message back?
-				*/
+			that._autoAssesor(spheronId,newQueueItem,thisTimestamp,function(){
+				console.log('****We have an answer at an output spheron... Lets broadcast this out to the i/o cortex???: ' + JSON.stringify(newQueueItem))
+				if(typeof udpUtils != 'undefined'){
+					udpUtils.sendMessage(JSON.stringify(newQueueItem))
+				}
+				
 				console.log('calledback from sendmessage...')
 				callback()
+			})
 		} else {
 			mongoUtils.getSpheron(spheronId, function(thisSpheron){
 
@@ -371,7 +478,6 @@ var spheron_runner = {
 				console.log('thisSpheron: ' + JSON.stringify(thisSpheron))
 
 				that._findFreeQueueAddress(thisSpheron, thisTimestamp, newQueueItem, function(newTimeStamp){
-
 					thisSpheron.inputMessageQueue[newTimeStamp] = (thisSpheron.inputMessageQueue[newTimeStamp]) ? thisSpheron.inputMessageQueue[newTimeStamp] : {}
 					thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId] = (thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId]) ? thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId] : {}
 					thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].nonVariant = (thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].nonVariant) ? thisSpheron.inputMessageQueue[newTimeStamp][newQueueItem.sigId].nonVariant : []
@@ -456,8 +562,27 @@ var spheron_runner = {
 							console.log('we updated the input...')
 							//that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.splice(0,1)
 							that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.shift()
-							if(((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant).length == 0 ||  that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] == 'undefined') && (that.spheron.inputMessageQueue[timestamp][thisSigId].variant).length == 0){
-								//activate immediately - note activate takes care of internal multivariance...
+
+
+							var variantIsNullOrEmpty = false
+							if(that.spheron.inputMessageQueue[timestamp][thisSigId].variant) {
+								if(that.spheron.inputMessageQueue[timestamp][thisSigId].variant.length == 0 || that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0] == 'undefined'){
+									variantIsNullOrEmpty = true	
+								}
+							} else {
+								variantIsNullOrEmpty = true
+							}
+
+							var nonVariantIsNullOrEmpty = false
+							if(that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant || that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] == 'undefined') {
+								if(that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant.length == 0){
+									nonVariantIsNullOrEmpty = true	
+								}
+							} else {
+								nonVariantIsNullOrEmpty = true
+							}
+
+							if(nonVariantIsNullOrEmpty && variantIsNullOrEmpty){
 								that.activate(thisSigId, function(){
 									console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
 									if(Object.keys(that.spheron.inputMessageQueue)[0]){
@@ -477,7 +602,7 @@ var spheron_runner = {
 						that._inputMessageSigIdIterator(timestamp, callback)
 					}
 					
-				} else if (that.spheron.inputMessageQueue[timestamp][thisSigId].variant){
+				} else if (that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]){
 					console.log('***in the multivariant queue handler...')
 					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";").length -1]
 					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0], 0, function(){
@@ -494,7 +619,7 @@ var spheron_runner = {
 						})
 					})
 				} else {
-					console.log('***no sigId...')
+					console.log('***empty sigId...')
 					delete that.spheron.inputMessageQueue[timestamp]
 					callback()
 				}
@@ -601,9 +726,7 @@ var spheron_runner = {
 	activationIterator:function(mapIdx, testIdx, thisSigId, callback){
 		//automatically handle internal A/B - i.e. if this spheron has a variantMap then we need to fire for each (exclusively)
 		var that = this
-		//console.log(JSON.stringify(that.spheron))
 		if(that.spheron.variantMaps.length == 0){
-			//console.log('running non-variant activation')
 			that.spheron.activate(null, null, function(thisResult){
 				that._cleanupInputMessageQueue()
 
@@ -647,10 +770,6 @@ var spheron_runner = {
 							that.spheron.state = "idle"
 						}
 
-/*
-* Our multi-variant bug is here.
-*/
-
 						console.log('In the multiVariant callback from Activate with this result: ' + JSON.stringify(thisResult))
 						that.spheron.propagationMessageQueue[systemTickPlusOne] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne] : {}
 						that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] = (typeof that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] !== 'undefined') ? that.spheron.propagationMessageQueue[systemTickPlusOne][thisSigId] : []
@@ -679,6 +798,20 @@ var spheron_runner = {
 			callback()	
 		})
 	}
+	/*,
+	checkDNS: function(callback){
+		dns.lookupService('8.8.8.8', 53, function(err, hostname, service){
+		console.log('DNS Lookup Result')
+		  console.log(hostname, service);
+		  process.exit()
+		  if(err){
+		  	callback('fail')
+		  } else {
+		  	callback('pass')
+		  }
+		    // google-public-dns-a.google.com domain
+		});
+	}*/
 }
 
 spheron_runner.init(function(){

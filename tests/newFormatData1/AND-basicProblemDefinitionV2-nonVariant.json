@@ -1,8 +1,10 @@
 {
 	"note" : "basic problem definiton - fully interconnected network with AND Model test plan",
+	"type" : "lesson",
 	"problemId" : "whatIsAnd",
 	"options":{
-		"timeout": 10
+		"timeout": 10,
+		"mode": "autoTrain"
 	},
 	"network" : [
 		{"spheronId": "inputSpheron1",
@@ -52,14 +54,10 @@
 					}
 				}
 			},
-			"variantMaps" : [ 
-			],
-			"propagationMessageQueue": { 
-			}, 
+			"variantMaps" : [],
+			"propagationMessageQueue": {}, 
 			"bpErrorMessageQueue" : [],
-			"variantErrorMaps" : [
-				{}
-			]
+			"variantErrorMaps" : {}
 		},
 		{"spheronId": "inputSpheron2",
 			"type" : "spheron",
@@ -106,14 +104,10 @@
 					}
 				}
 			},
-			"variantMaps" : [
-			],
+			"variantMaps" : [],
 			"propagationMessageQueue": {},
-			"bpErrorMessageQueue" : [
-
-			],
-			"variantErrorMaps" : [
-			]
+			"bpErrorMessageQueue" : [],
+			"variantErrorMaps" : {}
 		},
 		{"spheronId": "outputSpheron1",
 			"type" : "spheron",
@@ -125,12 +119,10 @@
 				{"id" : "ANDout", "type": "extOutput", "angle": 60, "val": -1, "toId": "ext", "outputFn" : {"mode": "eq", "val": 1, "ignoreWhileTrain": true}}
 			],
 			"inputMessageQueue": {}, 
-			"variantMaps" : [
-			],			
+			"variantMaps" : [],			
 			"propagationMessageQueue": {},
-			"bpErrorMessageQueue" : [{"Foo":"Bar"}],
-			"variantErrorMaps" : [
-			]
+			"bpErrorMessageQueue" : [],
+			"variantErrorMaps" : {}
 		}
 	],
 	"tests" : [

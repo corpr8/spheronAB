@@ -1,8 +1,10 @@
 {
 	"note" : "basic problem definiton - fully interconnected network with AND Model test plan",
 	"problemId" : "whatIsAnd",
+	"type" : "lesson",
 	"options":{
-		"timeout": 10
+		"timeout": 10,
+		"mode":"autoTrain"
 	},
 	"network" : [
 		{"spheronId": "inputSpheron1",
@@ -19,7 +21,37 @@
 				"1": {
 					"sigId-123456789":{
 						"nonVariant":[
-							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 1, "isVariant": false, "sigId" : "123456789" }
+							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 0, "isVariant": false, "sigId" : "123456789" }
+						],
+						"variant": [
+							
+						]
+					}
+				},
+				"2": {
+					"sigId-2234567890":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 1, "val": 1, "isVariant": false, "sigId" : "234567890" }
+						],
+						"variant": [
+							
+						]
+					}
+				},
+				"3": {
+					"sigId-345678901":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 2, "val": 0, "isVariant": false, "sigId" : "345678901" }
+						],
+						"variant": [
+							
+						]
+					}
+				},
+				"4": {
+					"sigId-45678901":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 3, "val": 1, "isVariant": false, "sigId" : "45678901" }
 						],
 						"variant": [
 							
@@ -30,15 +62,9 @@
 			"variantMaps" : [
 				["bias1", "bias1a"]
 			],
-			"propagationMessageQueue": { 
-			}, 
+			"propagationMessageQueue": {}, 
 			"bpErrorMessageQueue" : [],
-			"variantErrorMaps" : [ 
-				{
-					"bias1":[ 1, null, null, null],
-					"bias1a":[0.3, null, null, null]
-				}
-			]
+			"variantErrorMaps" : {}
 		},
 		{"spheronId": "inputSpheron2",
 			"type" : "spheron",
@@ -58,18 +84,42 @@
 						],
 						"variant": []
 					}
+				},
+				"2": {
+					"sigId-2234567890":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input2", "testIdx": 1, "val": 0, "isVariant": false, "sigId" : "234567890" }
+						],
+						"variant": [
+							
+						]
+					}
+				},
+				"3": {
+					"sigId-345678901":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input2", "testIdx": 2, "val": 1, "isVariant": false, "sigId" : "345678901" }
+						],
+						"variant": [
+							
+						]
+					}
+				},
+				"4": {
+					"sigId-45678901":{
+						"nonVariant":[
+							{"problemId" : "whatIsAnd", "path" : "input2", "testIdx": 3, "val": 1, "isVariant": false, "sigId" : "45678901" }
+						],
+						"variant": []
+					}
 				}
 			},
 			"variantMaps" : [
 				["bias2", "bias2a"]
 			],
-			"propagationMessageQueue": [
-			],
-			"bpErrorMessageQueue" : [
-
-			],
-			"variantErrorMaps" : [
-			]
+			"propagationMessageQueue": {},
+			"bpErrorMessageQueue" : [],
+			"variantErrorMaps" : {}
 		},
 		{"spheronId": "outputSpheron1",
 			"type" : "spheron",
@@ -82,9 +132,9 @@
 			],
 			"inputMessageQueue": {},
 			"variantMaps" : [],
-			"propagationMessageQueue": [],
+			"propagationMessageQueue": {},
 			"bpErrorMessageQueue" : [],
-			"variantErrorMaps" : []
+			"variantErrorMaps" : {}
 		}
 	],
 	"tests" : [
