@@ -84,6 +84,19 @@ var mongoUtils = {
 	    	}
 		});
 	},
+	getLessonLength: function(lessonId, callback){
+		mongoNet.findOne({
+			type: "lesson",
+			problemId: lessonId
+		}, function(err, results) {
+	    	if (err){
+	    		callback();
+	    	} else {	
+	    		callback(results.tests.length)
+	    	}
+		});
+
+	},
 	_old_saveSpheron: function(spheronData, callback){
 		console.log('saving spheron')
 		console.log('new data: ' + JSON.stringify(spheronData))

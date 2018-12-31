@@ -6,12 +6,11 @@
 
 var mongoUtils = require('./mongoUtils.js')
 var Spheron = require('./spheron.js')
-var dns = require('dns');
 var UdpUtils;
 var udpUtils;
 //commented out the UDP stuff as we are flying...
-//var UdpUtils = require('./udpUtils.js')
-//var udpUtils = new UdpUtils()
+//UdpUtils = require('./udpUtils.js')
+//udpUtils = new UdpUtils()
 
 var spheron_runner = {
 	spheron: null,
@@ -31,18 +30,7 @@ var spheron_runner = {
 				})	
 			} else {
 				that.startTicking()
-				/*
-				that.checkDNS(function(result){
-					console.log(result)
-					process.exit()
-					if(result == 'pass'){
-						UdpUtils = require('./udpUtils.js')
-						udpUtils = new UdpUtils()
-					} 
-					callback()
-				})*/
 				callback()
-				
 			}
 		})
 	},
@@ -159,9 +147,11 @@ var spheron_runner = {
 		        * Increment phaseIdx and iterate
 		        */
 		        console.log('Phase4: handle multi-variant data storage and resolution')
-		        phaseIdx += 1
-		    	this.processSpheron(phaseIdx, callback)
-		        break;
+				that.processCompleteMVTests(function(){
+					phaseIdx += 1
+		    		that.processSpheron(phaseIdx, callback)
+				})
+				break;
 		    case 5:
 		    	console.log('Phase5: loading new tests into the spheron')
 			    /*
@@ -188,6 +178,161 @@ var spheron_runner = {
 		    	}
 		}
 	},
+	processCompleteMVTests: function(callback){
+		/*
+		* TODO:
+		* 1: Find how many test are in the current lesson
+		* 2: Find each variant connection set
+		* 3: Iterate each member of the set
+		* 4: Assess if we have a full set of error results for that variant
+		* 5: if not, move onto the next test.
+		* 6: else, keep marking.
+		* 5: If we do have a full set, clear the error matrix and delete the losing variants.
+		*/
+
+		var that = this
+		var thisProblemId = that.spheron.problemId
+		mongoUtils.getLessonLength(thisProblemId, function(lessonLength){
+			console.log('lesson length: ' + lessonLength)
+			that.mvTestIterator(lessonLength, 0, 0, function(){
+				callback()
+			})
+		})	
+	},
+	mvTestIterator: function(lessonLength, variantMapIdx, variantMapItemIdx, callback){
+		console.log('iterating over tests.')
+		var that = this
+		variantMapIdx = (variantMapIdx) ? variantMapIdx : 0
+		variantMapItemIdx = (variantMapItemIdx) ? variantMapItemIdx : 0
+		if(that.spheron.variantMaps[variantMapIdx]){
+			console.log('found a variant map.')
+			//we have found a variantError map. We should iterate the items within the map and search for complete sets.
+			if(that.spheron.variantMaps[variantMapIdx][variantMapItemIdx]){
+				that.countCompletedTestsByConnId(that.spheron.variantMaps[variantMapIdx][variantMapItemIdx], function(resultCount){
+					console.log('resultCount is: ' + resultCount)
+					if(resultCount == lessonLength){
+						console.log('found a completed test.')
+						that.mvTestIterator(lessonLength, variantMapIdx, variantMapItemIdx +1, callback)
+					} else {
+						//we failed so look at the next set of variants.
+						console.log('found an incomplete test.')
+						that.mvTestIterator(lessonLength, variantMapIdx +1, 0, callback)
+					}
+				})
+			} else {
+				//we have hit this point without iterating to the next test so this must be a complete test!
+				//TODO: Now splat the test and delete the loser.
+				console.log('all tests completed for a set of variants: ' + that.spheron.variantMaps[variantMapIdx])
+				that.determineTestWinner(variantMapIdx, that.spheron.variantMaps[variantMapIdx], function(result){
+					console.log('The variant winner is: ' + result)
+					callback()	
+				})
+				
+			}
+		} else {
+			//we have iterated all of the variant maps and haven't found any complete test grids. Shame.
+			callback()
+		}
+	},
+	determineTestWinner: function(variantMapIdx, variantMap, callback){
+		/*
+		* 1: iterate each memeber of the variantMap
+		* 2: work out the aggregate error
+		* 3: determine the best
+		*/
+
+		var that = this
+		that.iterateAggregateTestResults(variantMap, 0, {}, function(winner){
+			console.log('our test winner is: ' + winner)
+			//TODO: now cleanup the tests, connections, scoring and maps.
+			that.cleanupSpheron(variantMapIdx, variantMap, winner, function(){
+				console.log('spheron is house-kept')
+				process.exit()
+				//callback()
+			})
+		})
+	},
+	cleanupSpheron: function(variantMapIdx, variantMap, winner, callback){
+		/*
+		* 1: delete any losing connections
+		* 2: delete results
+		* 3: delete the map
+		*/
+		var that = this
+		console.log('cleaning up spheron :)')
+
+		//TODO
+
+
+
+		
+	},
+	iterateAggregateTestResults: function(variantMap, variantMapItemIdx, aggregateResultObject, callback){
+		variantMap = (variantMap) ? variantMap : {}
+		variantMapItemIdx = (variantMapItemIdx) ? variantMapItemIdx : 0
+		aggregateResultObject = (aggregateResultObject) ? aggregateResultObject : {}
+		var that = this
+		console.log('variantMapId is ' + variantMap)
+		if(variantMap[variantMapItemIdx]){
+			//go through results and store the aggregate in the aggregate object.
+			that.findAggregateScoreIterator(variantMap[variantMapItemIdx], 0, 0, function(resultantScore){
+				aggregateResultObject[variantMap[variantMapItemIdx]] = resultantScore
+				console.log('aggregate score: ' + resultantScore)
+				that.iterateAggregateTestResults(variantMap, variantMapItemIdx +1, aggregateResultObject, callback)	
+			})
+		} else {
+			//we have hit the end of the variants in this set. loop our aggregate object to find the lowest and return it.
+			console.log('aggregate object is: ' + JSON.stringify(aggregateResultObject))
+			that.findLowestItemFromAggregateMapIterator(aggregateResultObject, 9999999, null, 0, function(lowestId){
+				console.log('lowest error path is: ' + lowestId)
+				callback(lowestId)
+			})
+		}
+	},
+	findAggregateScoreIterator: function(connectionId, scoreItemIdx, aggregateScore, callback){
+		var that = this
+		console.log('aggregate sofar: ' + aggregateScore)
+		if(that.spheron.variantErrorMaps[connectionId][scoreItemIdx]){
+			aggregateScore += that.spheron.variantErrorMaps[connectionId][scoreItemIdx]
+			aggregateScore = Math.floor(aggregateScore * 1000) / 1000
+			that.findAggregateScoreIterator(connectionId, scoreItemIdx +1, aggregateScore, callback)
+		} else {
+			callback(aggregateScore)
+		}
+	},
+	countCompletedTestsByConnId: function(connectionId, callback){
+		var that = this
+		var foundResults = 0
+		console.log('this connectionId is: ' + connectionId + ' in spheron: ' + that.spheron.spheronId)
+		console.log('variant map is: ' + JSON.stringify(that.spheron.variantErrorMaps))
+		if(that.spheron.variantErrorMaps[connectionId]){
+			for(var v=0;v < that.spheron.variantErrorMaps[connectionId].length;v++){
+				if(that.spheron.variantErrorMaps[connectionId][v] != null){
+					foundResults += 1
+				}
+			}
+			callback(foundResults)
+		} else {
+			callback(0)
+		}
+	},
+	findLowestItemFromAggregateMapIterator: function(aggregateResultObject, lowestFound, lowestId, objectIdx, callback){
+		var that = this
+		if(aggregateResultObject[Object.keys(aggregateResultObject)[objectIdx]]){
+			console.log('aggregateObject keys: ' + JSON.stringify(Object.keys(aggregateResultObject)))
+			if(aggregateResultObject[Object.keys(aggregateResultObject)[objectIdx]] <= lowestFound){
+				lowestFound = aggregateResultObject[Object.keys(aggregateResultObject)[objectIdx]]
+				lowestId = Object.keys(aggregateResultObject)[objectIdx]
+				console.log('lowestId: ' + lowestId)
+				that.findLowestItemFromAggregateMapIterator(aggregateResultObject, lowestFound, lowestId, objectIdx +1, callback)
+			} else {
+				that.findLowestItemFromAggregateMapIterator(aggregateResultObject, lowestFound, lowestId, objectIdx +1, callback)
+			}
+		} else {
+			callback(lowestId)
+		}
+
+	},	
 	testPushBPErrorToVariantErrorMap: function(inputMsg, callback){
 		console.log('pushing error to error map.')
 		var that = this
@@ -798,20 +943,6 @@ var spheron_runner = {
 			callback()	
 		})
 	}
-	/*,
-	checkDNS: function(callback){
-		dns.lookupService('8.8.8.8', 53, function(err, hostname, service){
-		console.log('DNS Lookup Result')
-		  console.log(hostname, service);
-		  process.exit()
-		  if(err){
-		  	callback('fail')
-		  } else {
-		  	callback('pass')
-		  }
-		    // google-public-dns-a.google.com domain
-		});
-	}*/
 }
 
 spheron_runner.init(function(){
