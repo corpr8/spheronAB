@@ -84,11 +84,11 @@ var spheron_runner = {
 		        */
 		        console.log('Phase0: should we mutate?')
 
-		        //TODO: Mutation functions - note they will be additive mutation (either / or)
-
-		        phaseIdx += 1
-		    	that.processSpheron(phaseIdx, callback)
-		        break;
+		        that.mutator(function(){
+					phaseIdx += 1
+			    	that.processSpheron(phaseIdx, callback)
+		        })
+				break;
 			case 1:
 		        /*
 				* Handle Input Messages and Activation as follows:
@@ -163,7 +163,7 @@ var spheron_runner = {
 		        break;
 		    default:
 		    	console.log('in default phase handler (i.e. The fallback.) - phase is: ' + phaseIdx)
-		    	if(phaseIdx <= 5){
+		    	if(phaseIdx <= 6){
 		    		phaseIdx += 1
 		    		that.processSpheron(phaseIdx, callback)
 		    	} else {
@@ -176,6 +176,110 @@ var spheron_runner = {
 		    			callback()	
 		    		})
 		    	}
+		}
+	},
+	mutator: function(callback){
+		/*
+		* 1: If in training mode, Decide if we should mutate
+		* 2: Decide which mutation
+		* 3: setup mutation function as a multi variant.
+		*/
+		var that = this
+		var trainMode = mongoUtils.getLessonModeById(that.spheron.problemId, function(currentMode){
+			console.log('lesson is in ' + currentMode + ' mode')
+			if(currentMode == 'autoTrain'){
+				if( Math.random() > 0.5){
+					that.mutationSelector(function(){
+						callback()
+					})
+				} else {
+					//we won't mutate this spheron this time.
+					callback()
+				}
+			} else {
+				//we should not mutate as we are a fully trained lesson / problem.
+				callback()
+			}
+		})
+	},
+	mutationSelector: function(callback){
+		//we should mutate - which way?
+		var that = this
+		switch(Math.floor(Math.random() * 2)) {
+			case 0:
+				console.log('mutation: clone / tweak bias')
+				that.mutationFunctions.cloneTweakBias(function(){
+					console.log('mutation complete. Check it. Exiting for now...')
+					process.exit()	
+				})
+				break;
+			default:
+				console.log('mutation: default exiting for now...')
+				process.exit()
+		}
+	},
+	mutationFunctions: {
+		cloneTweakBias: function(callback){
+			/*
+			* 1: Find a bias connection
+			* 2: duplicate / tweak it
+			* 3: Find if the connection is part of an existing MV test
+			* 4: If yes, extend the test with a new variant.
+			* 5: If no, start a new test.
+			*/
+			var that = this
+			that.utils.getRandomBiasConnection(function(thisRandomBias){
+				console.log('Selected a random bias: ' + thisRandomBias)
+				that.utils.isBiasInMVTest(thisRandomBias, function(isMVTestMemberObject){
+					console.log('Bias existent MV Test information: ' + JSON.stringify(isMVTestMemberObject))
+					process.exit()
+				})
+			})
+		},
+		utils: {
+			isBiasInMVTest: function(thisBias, callback){
+				var that = this
+				that.isBiasInMVTestIterator(thisBias, 0, 0, function(isMVTestMemberObject){
+					callback(isMVTestMemberObject)
+				})
+			},
+			isBiasInMVTestIterator: function(thisBias, mvTestIdx, mvTestItemIdx, callback){
+				var that = this
+				if(spheron_runner.spheron.variantMaps[mvTestIdx]){
+					if(spheron_runner.spheron.variantMaps[mvTestIdx][mvTestItemIdx]){
+						//console.log('comparing: ' + spheron_runner.spheron.variantMaps[mvTestIdx][mvTestItemIdx] + ' against: ' + mvTestIdx)
+						if(spheron_runner.spheron.variantMaps[mvTestIdx][mvTestItemIdx] == thisBias){
+							callback({mvTestIdx: mvTestIdx, mvTestItemIdx: mvTestItemIdx})
+						} else {
+							that.isBiasInMVTestIterator(thisBias, mvTestIdx, mvTestItemIdx +1, callback)
+						}
+					} else {
+						that.isBiasInMVTestIterator(thisBias, mvTestIdx +1, 0, callback)
+					}
+				} else {
+					callback({mvTestIdx: -1, mvTestItemIdx: -1})
+				}
+			},
+			getRandomBiasConnection: function(callback){
+				var that = this
+				that.getRandomBiasConnectionIterator([], 0, function(randomBiasId){
+					callback(randomBiasId)
+				})
+			},
+			getRandomBiasConnectionIterator: function(biasesArray, connectionIdx, callback){
+				var that = this
+				biasesArray = (biasesArray) ? biasesArray : []
+				connectionIdx = (connectionIdx) ? connectionIdx : 0
+				if(spheron_runner.spheron.io[connectionIdx]){
+					if(spheron_runner.spheron.io[connectionIdx].type == 'bias'){
+						biasesArray.push(spheron_runner.spheron.io[connectionIdx].id)
+					}
+					that.getRandomBiasConnectionIterator(biasesArray, connectionIdx +1, callback)
+				} else {
+					callback(biasesArray[Math.floor(Math.random() * biasesArray.length)])
+				}
+
+			}
 		}
 	},
 	processCompleteMVTests: function(callback){
@@ -247,25 +351,71 @@ var spheron_runner = {
 			//TODO: now cleanup the tests, connections, scoring and maps.
 			that.cleanupSpheron(variantMapIdx, variantMap, winner, function(){
 				console.log('spheron is house-kept')
-				process.exit()
-				//callback()
+				callback()
 			})
 		})
 	},
 	cleanupSpheron: function(variantMapIdx, variantMap, winner, callback){
 		/*
 		* 1: delete any losing connections
-		* 2: delete results
-		* 3: delete the map
+		* 2: delete variantErrorMaps for all conenections within this test
+		* 3: delete the variantMaps entry
 		*/
 		var that = this
 		console.log('cleaning up spheron :)')
 
-		//TODO
-
-
-
-		
+		that.deleteLosingConnectionsIterator(variantMap, winner, 0, function(){
+			that.deleteVariantErrorMapIterator(variantMap, 0, function(){
+				that.deleteVariantMapEntry(variantMapIdx, function(){
+					callback()
+				})
+			})
+		})
+	},
+	deleteLosingConnectionsIterator: function(variantMap, winner, variantMapItemIdx, callback){
+		var that = this
+		console.log('variant Map is: ' + JSON.stringify(variantMap))
+		if(variantMap[variantMapItemIdx]){
+			if(variantMap[variantMapItemIdx] != winner){
+				that.deleteLosingConnection(variantMap[variantMapItemIdx], 0, function(){
+					that.deleteLosingConnectionsIterator(variantMap, winner, variantMapItemIdx +1, callback)
+				})
+			} else {
+				that.deleteLosingConnectionsIterator(variantMap, winner, variantMapItemIdx +1, callback)
+			}
+		} else {
+			callback()
+		}
+	},
+	deleteLosingConnection(connectionId, connectionIdx, callback){
+		var that = this
+		if(that.spheron.io[connectionIdx]){
+			if(that.spheron.io[connectionIdx].id == connectionId){
+				 console.log('deleting connection: ' + that.spheron.io[connectionIdx].id + ' connectionIdx: ' + connectionIdx);
+				(that.spheron.io).splice(connectionIdx, 1)
+				callback()
+			} else {
+				that.deleteLosingConnection(connectionId, connectionIdx +1, callback)
+			}
+		} else {
+			callback()
+		}
+	},
+	deleteVariantErrorMapIterator: function(variantMap, variantMapItemIdx, callback){
+		var that = this
+		if(variantMap[variantMapItemIdx]){
+			if(that.spheron.variantErrorMaps[variantMap[variantMapItemIdx]]){
+				delete that.spheron.variantErrorMaps[variantMap[variantMapItemIdx]]
+				that.deleteVariantErrorMapIterator(variantMap, variantMapItemIdx +1, callback)
+			}
+		} else {
+			callback()
+		}
+	},
+	deleteVariantMapEntry: function(variantMapIdx, callback){
+		var that = this
+		that.spheron.variantMaps.splice(variantMapIdx,1)
+		callback()
 	},
 	iterateAggregateTestResults: function(variantMap, variantMapItemIdx, aggregateResultObject, callback){
 		variantMap = (variantMap) ? variantMap : {}
