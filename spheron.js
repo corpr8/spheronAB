@@ -141,6 +141,7 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 			console.log('thisConn path: ' + thisConn.path)
 			thisConn.path = (thisConn.path !== undefined) ? thisConn.path : thisConn.id
 			console.log('thisConn path is now: ' + thisConn.path)
+			
 			for(var thisOutput in theseOutputs){
 				if(typeof thisResults[theseOutputs[thisOutput]] == "undefined"){
 					thisResults[theseOutputs[thisOutput]] = {}

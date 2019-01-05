@@ -4,7 +4,8 @@
 	"type" : "lesson",
 	"options":{
 		"timeout": 10,
-		"mode":"autoTrain"
+		"mode":"autoTrain",
+		"errorThreshold":0.001
 	},
 	"network" : [
 		{"spheronId": "inputSpheron1",

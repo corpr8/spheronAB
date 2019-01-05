@@ -95,13 +95,40 @@ var mongoUtils = {
 	    		callback(results.tests.length)
 	    	}
 		});
-
+	},
+	assessIfLessonPassed(problemId, lowestFound, callback){
+		mongoNet.findOne({
+			type: "lesson",
+			problemId: lessonId
+		}, function(err, results) {
+	    	if (err){
+	    		callback();
+	    	} else {	
+	    		if(lowestFound < results.options.errorThreshold){
+					mongoNet.findOneAndUpdate({
+						type: "lesson",
+						problemId: lessonId
+					},{
+						$set: {mode:"trained"}
+					}, 
+					{}, 
+					function(err,doc){
+						if(err){
+							callback()
+						} else { 
+							callback('trained')
+						}	
+					})
+	    		} else {
+	    			callback()
+	    		}
+	    	}
+		});
 	},
 	_old_saveSpheron: function(spheronData, callback){
 		console.log('saving spheron')
 		console.log('new data: ' + JSON.stringify(spheronData))
 		mongoNet.updateOne({"spheronId" : spheronData.spheronId}, spheronData, function(err, result){
-			//console.log('in save callback')
 			callback()
 		})
 	},
@@ -177,7 +204,6 @@ var mongoUtils = {
 				idx += 1
 				that.createSpheronFromArrayIterator(idx, problemDescription, callback)
 			});
-
 		} else {
 			callback()
 		}
