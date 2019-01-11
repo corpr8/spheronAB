@@ -24,9 +24,7 @@
 						"nonVariant":[
 							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 0, "val": 0, "isVariant": false, "sigId" : "123456789" }
 						],
-						"variant": [
-							
-						]
+						"variant": []
 					}
 				},
 				"2": {
@@ -34,9 +32,7 @@
 						"nonVariant":[
 							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 1, "val": 1, "isVariant": false, "sigId" : "234567890" }
 						],
-						"variant": [
-							
-						]
+						"variant": []
 					}
 				},
 				"3": {
@@ -44,9 +40,7 @@
 						"nonVariant":[
 							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 2, "val": 0, "isVariant": false, "sigId" : "345678901" }
 						],
-						"variant": [
-							
-						]
+						"variant": []
 					}
 				},
 				"4": {
@@ -54,9 +48,7 @@
 						"nonVariant":[
 							{"problemId" : "whatIsAnd", "path" : "input1", "testIdx": 3, "val": 1, "isVariant": false, "sigId" : "45678901" }
 						],
-						"variant": [
-							
-						]
+						"variant": []
 					}
 				}
 			},
@@ -139,9 +131,9 @@
 		}
 	],
 	"tests" : [
-		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 0}, "spheron": "inputSpheron2", "input2": {"val": 0}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 0}}},
-		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 0}, "spheron": "inputSpheron2", "input2": {"val": 1}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 0}}},
-		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 1}, "spheron": "inputSpheron2", "input2": {"val": 0}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 0}}},
-		{"inputs": {"spheron": "inputSpheron1", "input1": {"val": 1}, "spheron": "inputSpheron2", "input2": {"val": 1}}, "outputs": {"spheron": "outputSpheron1", "ANDout": {"val": 1}}}
+		{"inputs": {"inputSpheron1": {"input1": {"val": 0}}, "inputSpheron2": {"input2": {"val": 0}}}, "outputs": {"ext": {"ANDout": {"val": 0}}}},
+		{"inputs": {"inputSpheron1": {"input1": {"val": 1}}, "inputSpheron2": {"input2": {"val": 0}}}, "outputs": {"ext": {"ANDout": {"val": 0}}}},
+		{"inputs": {"inputSpheron1": {"input1": {"val": 0}}, "inputSpheron2": {"input2": {"val": 1}}}, "outputs": {"ext": {"ANDout": {"val": 0}}}},
+		{"inputs": {"inputSpheron1": {"input1": {"val": 1}}, "inputSpheron2": {"input2": {"val": 1}}}, "outputs": {"ext": {"ANDout": {"val": 1}}}}
 	]
 }

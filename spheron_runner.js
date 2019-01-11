@@ -154,15 +154,14 @@ var spheron_runner = {
 				})
 				break;
 		    case 5:
-		    	console.log('Phase5: loading new tests into the spheron')
-			    /*
-			    * If we are an input spheron and the lesson is still in mode=autoTrain then check if the input queueLength is less than
-			    * the number of test states and if so, push more lessons onto the stack.
+				/*
+			     * Persist spheron to mongo.
 			    */
-				that.maintainTrainingQueue(function(){
-					phaseIdx += 1
+				console.log('Phase5: persisting this spheron back to mongo...')
+		    	that.persistSpheron(function(){
+		    		phaseIdx += 1
 		    		that.processSpheron(phaseIdx, callback)
-				})
+		    	})
 		        break;
 		    default:
 		    	console.log('in default phase handler (i.e. The fallback.) - phase is: ' + phaseIdx)
@@ -170,24 +169,165 @@ var spheron_runner = {
 		    		phaseIdx += 1
 		    		that.processSpheron(phaseIdx, callback)
 		    	} else {
-		    		/*
-			        * Persist spheron to mongo.
-			        */
-		        	console.log('Phase6: persisting this spheron back to mongo...')
-		    		that.persistSpheron(function(){
-		    			phaseIdx = 0
-		    			callback()	
-		    		})
+			    	console.log('Phase6: loading new tests into the spheron')
+				    /*
+				    * If we are an input spheron and the lesson is still in mode=autoTrain then check if the input queueLength is less than
+				    * the number of test states and if so, push more lessons onto the stack.
+				    */
+					that.maintainTrainingQueue(function(){
+						phaseIdx = 0
+			    		callback()
+					})
 		    	}
 		}
 	},
 	maintainTrainingQueue: function(callback){
 		/*
-		* 1: is lesson in training mode?
-		* 2: If yes, is training que length short (i.e. less than the number of tests or an arbitrary upper limit?)
-		* 3: If yes, push more tests onto the stack
+		* 1: Is lesson in training mode? 
+		* 2: If yes, Does spheron contain an external input?
+		* 3: Get highest tick in the inputQueue
+		* - If none, load another batch of tests to all inputs starting at next tick.
 		*/
-		callback()
+
+		var that = this
+		console.log(that.spheron.problemId)
+		mongoUtils.getLessonModeById(that.spheron.problemId, function(currentMode){
+			if(currentMode == 'autoTrain'){
+				that.hasExternalInput(0,function(hasExtIn){
+					if(hasExtIn == true){
+						that.searchHighestTickInInputQueue(0, -1, function(highestTick){
+							if(highestTick == -1){
+								console.log('we have an empty input queue')
+								//we have no inputQueue - load more data
+								that.loadNewLessonData(function(){
+									callback()
+								})
+							} else {
+								callback()
+							}
+						})
+					} else {
+						callback()
+					}
+				})
+			}else {
+				callback()
+			}
+		})
+	},
+	loadNewLessonData: function(callback){
+		//TODO:
+		var that = this
+		console.log('problemId is: ' + that.spheron.problemId)
+		mongoUtils.getTrainigData(that.spheron.problemId, function(trainingData){
+			//trainingData contains the data from the template
+			//console.log(JSON.stringify(trainingData))
+			//process.exit()
+
+
+			/*
+			*
+			*
+			[
+				{"inputs":{"inputSpheron1":{"input1":{"val":0}},"inputSpheron2":{"input2":{"val":0}}},"outputs":{"outputSpheron1":{"ANDout":{"val":0}}}},
+				{"inputs":{"inputSpheron1":{"input1":{"val":1}},"inputSpheron2":{"input2":{"val":0}}},"outputs":{"outputSpheron1":{"ANDout":{"val":0}}}},
+				{"inputs":{"inputSpheron1":{"input1":{"val":0}},"inputSpheron2":{"input2":{"val":1}}},"outputs":{"outputSpheron1":{"ANDout":{"val":0}}}},
+				{"inputs":{"inputSpheron1":{"input1":{"val":1}},"inputSpheron2":{"input2":{"val":1}}},"outputs":{"outputSpheron1":{"ANDout":{"val":1}}}}
+			]
+			*
+			*
+			*
+			* that._updateSpheronInputQueue(destinationSpheron, thisMessage, thisTimestamp, function(result){})
+			*
+			* Valid messages are:
+			*
+			* {"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":0,"val":-0.17365,"isVariant":true,"sigId":"sigId-123456789"}
+			*
+			* Process:
+			* 1: Generate a sigId (a GUID) and assign to each row of the trainingData
+			* 2: Iterate each row
+			* 3: Iterate each input
+			* 4: Call the 
+			* 
+			*
+
+
+			*/
+			that.dispatchTrainingDataIterator(0, 0, 0, trainingData, function(){
+				console.log('done iterating new training data')
+				//process.exit()
+				callback()
+			})
+
+		})
+	},
+	dispatchTrainingDataIterator: function(trainingDataIdx, inputIdx, portIdx, trainingData, callback){
+		var that = this
+		if(trainingData[trainingDataIdx]){
+			if(Object.keys(trainingData[trainingDataIdx].inputs)[inputIdx]){
+				if(!trainingData[trainingDataIdx].messageId){
+					trainingData[trainingDataIdx].messageId = generateUUID()
+				}
+
+				var targetSpheron = Object.keys(trainingData[trainingDataIdx].inputs)[inputIdx]
+				console.log('target spheron: ' + targetSpheron)
+
+				if(Object.keys(trainingData[trainingDataIdx].inputs[targetSpheron])[portIdx]){
+					var targetSpheronPort = Object.keys(trainingData[trainingDataIdx].inputs[targetSpheron])[portIdx]
+					console.log('target port: ' + targetSpheronPort)
+
+					var targetValue = trainingData[trainingDataIdx].inputs[targetSpheron][targetSpheronPort].val
+					console.log('port value is: ' + targetValue)
+
+					var thisMessage = {
+						"problemId": that.spheron.problemId,
+						"path": targetSpheronPort,
+						"testIdx":trainingDataIdx,
+						"val": targetValue,
+						"isVariant":false,
+						"sigId": trainingData[trainingDataIdx].messageId
+					}
+
+					console.log('new message: ' + JSON.stringify(thisMessage))
+
+					that._updateSpheronInputQueue(targetSpheron, thisMessage, that.systemTick +5, function(result){
+						that.dispatchTrainingDataIterator(trainingDataIdx, inputIdx, portIdx +1, trainingData, callback)
+					})
+				} else {
+					that.dispatchTrainingDataIterator(trainingDataIdx, inputIdx +1, 0, trainingData, callback)	
+				}
+			} else {
+				that.dispatchTrainingDataIterator(trainingDataIdx +1, 0, portIdx, trainingData, callback)
+			}
+		} else {
+			callback()
+		}
+	},
+	searchHighestTickInInputQueue: function(inputIdx, highestTick, callback){
+		var that = this
+		if(Object.keys(that.spheron.inputMessageQueue)[inputIdx]){
+			if(Object.keys(that.spheron.inputMessageQueue)[inputIdx] > highestTick){
+				highestTick = Object.keys(that.spheron.inputMessageQueue)[inputIdx]
+				that.searchHighestTickInInputQueue(inputIdx +1, highestTick, callback)
+			} else {
+				that.searchHighestTickInInputQueue(inputIdx +1, highestTick, callback)
+			}
+		} else {
+			callback(highestTick)
+		}
+		
+	},
+	hasExternalInput: function(ioIdx,callback){
+		var that = this
+		if(that.spheron.io[ioIdx]){
+			if(that.spheron.io[ioIdx].type == 'extInput'){
+				callback(true)
+			} else {
+				that.hasExternalInput(ioIdx +1,callback)
+			}
+		} else {
+			callback(false)
+		}
 	},
 	mutator: function(callback){
 		/*
@@ -199,7 +339,7 @@ var spheron_runner = {
 		var trainMode = mongoUtils.getLessonModeById(that.spheron.problemId, function(currentMode){
 			console.log('lesson is in ' + currentMode + ' mode')
 			if(currentMode == 'autoTrain'){
-				if( Math.random() > 0.5){
+				if( Math.random() > .8){
 					that.mutationSelector(function(){
 						//TODO: Note - I do not believe that the persist function below is strictly necessary - however, it is good for the debug...
 						that.persistSpheron(function(){
@@ -222,7 +362,7 @@ var spheron_runner = {
 		switch(Math.floor(Math.random() * 2)) {
 			case 0:
 				console.log('mutation: clone / tweak bias')
-				that.mutationFunctions.cloneTweakBias(function(){
+				that.cloneTweakBias(function(){
 					console.log('mutation complete. Check it....')
 					
 					callback()
@@ -233,134 +373,130 @@ var spheron_runner = {
 				callback()
 		}
 	},
-	mutationFunctions: {
-		cloneTweakBias: function(callback){
-			/*
-			* 1: Find a bias connection
-			* 2: duplicate / tweak it
-			* 3: Find if the connection is part of an existing MV test
-			* 4: If yes, extend the test with a new variant.
-			* 5: If no, start a new test.
-			*/
-			var that = this
-			that.utils.getRandomBiasConnection(function(thisRandomBias){
+	cloneTweakBias: function(callback){
+		/*
+		* 1: Find a bias connection
+		* 2: duplicate / tweak it
+		* 3: Find if the connection is part of an existing MV test
+		* 4: If yes, extend the test with a new variant.
+		* 5: If no, start a new test.
+		*/
+		var that = this
+		that.getRandomBiasConnection(function(thisRandomBias){
 
-				//TODO: 2.
-				that.utils.getBiasDetail(thisRandomBias, 0, function(currentBias){
-					console.log('current bias is: ' + currentBias)
-					var newBias = {}
-					if(currentBias != null){
-						newBias = JSON.parse(JSON.stringify(currentBias))
-					} else {
-						newBias.type = 'bias'
-						newBias.val = -1
+			//TODO: 2.
+			console.log('random bias is: ' + thisRandomBias)
+			that.getBiasDetail(thisRandomBias, 0, function(currentBias){
+				console.log('current bias is: ' + JSON.stringify(currentBias))
+				var newBias = {}
+				if(currentBias != null){
+					newBias = JSON.parse(JSON.stringify(currentBias))
+				} else {
+					newBias.type = 'bias'
+					newBias.val = -1
+				}
+
+				newBias.angle = newBias.angle + (Math.floor((Math.random() * 360) * 1000) / 1000)
+				newBias.id = generateUUID()
+				newBias.path = newBias.id
+
+				/*
+				* Note: Due to current spheron code, we insert any new bias IO before output connections.
+				*/
+
+				var foundOutput = false
+				var ioLength = (that.spheron.io).length
+				console.log((that.spheron.io).length)
+				for(var v=0; v<ioLength; v++){
+					if((that.spheron.io[v].type == 'output' || that.spheron.io[v].type == 'extOutput') && foundOutput == false){
+						foundOutput == true
+						that.spheron.io.splice(v,0,newBias)
 					}
+				}
+				/*
+				* End crappy limitation
+				*/
 
-					newBias.angle = newBias.angle + (Math.floor((Math.random() * 360) * 1000) / 1000)
-					newBias.id = generateUUID()
-					newBias.path = newBias.id
-
-					/*
-					* Note: Due to current spheron code, we insert any new bias IO before output connections.
-					*/
-
-					var foundOutput = false
-					var ioLength = (spheron_runner.spheron.io).length
-					console.log((spheron_runner.spheron.io).length)
-					for(var v=0; v<ioLength; v++){
-						if((spheron_runner.spheron.io[v].type == 'output' || spheron_runner.spheron.io[v].type == 'extOutput') && foundOutput == false){
-							foundOutput == true
-							spheron_runner.spheron.io.splice(v,0,newBias)		
-						}
-					}
-					/*
-					* End crappy limitation
-					*/
-
-					console.log('Selected a random bias: ' + thisRandomBias)
-					if(typeof currenBias !== 'undefined'){
-						that.utils.isBiasInMVTest(thisRandomBias, function(isMVTestMemberObject){
-							console.log('Bias existent MV Test information: ' + JSON.stringify(isMVTestMemberObject))
-							if(isMVTestMemberObject.mvTestIdx == -1){
-								//no current test - create one.
-								var newTest = []
-								newTest.push(currentBias.id)
-								newTest.push(newBias.id)
-								spheron_runner.spheron.variantMaps.push(newTest)
-							} else {
-								//curent test - extend it.
-								spheron_runner.spheron.variantMaps[isMVTestMemberObject.mvTestIdx].push(newBias.id)
-
-							}
-							console.log(JSON.stringify(spheron_runner.spheron))
-							//process.exit()
-							callback()
-						})
-					} else {
-						console.log('as there is no bias currently, we will just add the new one without testing.')
-						callback()
-					}
-				})
-			})
-		},
-		utils: {
-			isBiasInMVTest: function(thisBias, callback){
-				var that = this
-				that.isBiasInMVTestIterator(thisBias, 0, 0, function(isMVTestMemberObject){
-					callback(isMVTestMemberObject)
-				})
-			},
-			isBiasInMVTestIterator: function(thisBias, mvTestIdx, mvTestItemIdx, callback){
-				var that = this
-				if(spheron_runner.spheron.variantMaps[mvTestIdx]){
-					if(spheron_runner.spheron.variantMaps[mvTestIdx][mvTestItemIdx]){
-						//console.log('comparing: ' + spheron_runner.spheron.variantMaps[mvTestIdx][mvTestItemIdx] + ' against: ' + mvTestIdx)
-						if(spheron_runner.spheron.variantMaps[mvTestIdx][mvTestItemIdx] == thisBias){
-							callback({mvTestIdx: mvTestIdx, mvTestItemIdx: mvTestItemIdx})
+				console.log('Selected a random bias: ' + thisRandomBias)
+				if(typeof currentBias !== 'undefined'){
+					that.isBiasInMVTest(thisRandomBias, function(isMVTestMemberObject){
+						console.log('Bias existent MV Test information: ' + JSON.stringify(isMVTestMemberObject))
+						if(isMVTestMemberObject.mvTestIdx == -1){
+							//no current test - create one.
+							var newTest = []
+							newTest.push(currentBias.id)
+							newTest.push(newBias.id)
+							that.spheron.variantMaps.push(newTest)
 						} else {
-							that.isBiasInMVTestIterator(thisBias, mvTestIdx, mvTestItemIdx +1, callback)
-						}
-					} else {
-						that.isBiasInMVTestIterator(thisBias, mvTestIdx +1, 0, callback)
-					}
-				} else {
-					callback({mvTestIdx: -1, mvTestItemIdx: -1})
-				}
-			},
-			getRandomBiasConnection: function(callback){
-				var that = this
-				that.getRandomBiasConnectionIterator([], 0, function(randomBiasId){
-					callback(randomBiasId)
-				})
-			},
-			getRandomBiasConnectionIterator: function(biasesArray, connectionIdx, callback){
-				var that = this
-				biasesArray = (biasesArray) ? biasesArray : []
-				connectionIdx = (connectionIdx) ? connectionIdx : 0
-				if(spheron_runner.spheron.io[connectionIdx]){
-					if(spheron_runner.spheron.io[connectionIdx].type == 'bias'){
-						biasesArray.push(spheron_runner.spheron.io[connectionIdx].id)
-					}
-					that.getRandomBiasConnectionIterator(biasesArray, connectionIdx +1, callback)
-				} else {
-					//console.log('biases array is: ' + biasesArray.join(','))
-					callback(biasesArray[Math.floor(Math.random() * biasesArray.length)])
-				}
+							//curent test - extend it.
+							that.spheron.variantMaps[isMVTestMemberObject.mvTestIdx].push(newBias.id)
 
-			},
-			getBiasDetail: function(biasId, connIdx, callback){
-				var that = this
-				connIdx = (connIdx) ? connIdx : 0
-				if(spheron_runner.spheron.io[connIdx]){
-					if(spheron_runner.spheron.io[connIdx].id == biasId){
-						callback(spheron_runner.spheron.io[connIdx])
-					} else {
-						that.getBiasDetail(biasId, connIdx +1, callback)
-					}
+						}
+						console.log(JSON.stringify(that.spheron))
+						//process.exit()
+						callback()
+					})
 				} else {
+					console.log('as there is no bias currently, we will just add the new one without testing.')
 					callback()
 				}
+			})
+		})
+	},
+	isBiasInMVTest: function(thisBias, callback){
+		var that = this
+		that.isBiasInMVTestIterator(thisBias, 0, 0, function(isMVTestMemberObject){
+			callback(isMVTestMemberObject)
+		})
+	},
+	isBiasInMVTestIterator: function(thisBias, mvTestIdx, mvTestItemIdx, callback){
+		var that = this
+		if(that.spheron.variantMaps[mvTestIdx]){
+			if(that.spheron.variantMaps[mvTestIdx][mvTestItemIdx]){
+				//console.log('comparing: ' + spheron_runner.spheron.variantMaps[mvTestIdx][mvTestItemIdx] + ' against: ' + mvTestIdx)
+				if(that.spheron.variantMaps[mvTestIdx][mvTestItemIdx] == thisBias){
+					callback({mvTestIdx: mvTestIdx, mvTestItemIdx: mvTestItemIdx})
+				} else {
+					that.isBiasInMVTestIterator(thisBias, mvTestIdx, mvTestItemIdx +1, callback)
+				}
+			} else {
+				that.isBiasInMVTestIterator(thisBias, mvTestIdx +1, 0, callback)
 			}
+		} else {
+			callback({mvTestIdx: -1, mvTestItemIdx: -1})
+		}
+	},
+	getRandomBiasConnection: function(callback){
+		var that = this
+		that.getRandomBiasConnectionIterator([], 0, function(randomBiasId){
+			callback(randomBiasId)
+		})
+	},
+	getRandomBiasConnectionIterator: function(biasesArray, connectionIdx, callback){
+		var that = this
+		biasesArray = (biasesArray) ? biasesArray : []
+		connectionIdx = (connectionIdx) ? connectionIdx : 0
+		if(that.spheron.io[connectionIdx]){
+			if(that.spheron.io[connectionIdx].type == 'bias'){
+				biasesArray.push(that.spheron.io[connectionIdx].id)
+			}
+			that.getRandomBiasConnectionIterator(biasesArray, connectionIdx +1, callback)
+		} else {
+			//console.log('biases array is: ' + biasesArray.join(','))
+			callback(biasesArray[Math.floor(Math.random() * biasesArray.length)])
+		}
+	},
+	getBiasDetail: function(biasId, connIdx, callback){
+		var that = this
+		connIdx = (connIdx) ? connIdx : 0
+		if(that.spheron.io[connIdx]){
+			if(that.spheron.io[connIdx].id == biasId){
+				callback(that.spheron.io[connIdx])
+			} else {
+				that.getBiasDetail(biasId, connIdx +1, callback)
+			}
+		} else {
+			callback()
 		}
 	},
 	processCompleteMVTests: function(callback){
@@ -561,7 +697,7 @@ var spheron_runner = {
 			}
 		} else {
 			console.log('assessing if lesson passed')
-			that.mongoUtils.assessIfLessonPassed(that.spheron.problemId, lowestFound, function(assessmentResult){
+			mongoUtils.assessIfLessonPassed(that.spheron.problemId, lowestFound, function(assessmentResult){
 				if(assessmentResult == 'trained'){
 					console.log('****** We finished training a network! ******')
 					if(typeof udpUtils != 'undefined'){
@@ -823,7 +959,9 @@ var spheron_runner = {
 					console.log('message port:' + outputPort)
 					//finally our health function!!!!
 					//push error onto the backpropstack
-					var thisError = Math.floor(Math.abs(newQueueItem.val - (expectedAnswer[outputPort].val))*10000)/10000
+					console.log('spheronId: ' + spheronId)
+					console.log('diag: ' + JSON.stringify(expectedAnswer[spheronId]))
+					var thisError = Math.floor(Math.abs(newQueueItem.val - (expectedAnswer[spheronId][outputPort].val))*10000)/10000
 					console.log('error:' + thisError)
 					var errorMessage = JSON.parse(JSON.stringify(newQueueItem))
 					errorMessage.error = thisError
@@ -860,7 +998,7 @@ var spheron_runner = {
 				* 2: A future tick which is vacant.
 				*/
 
-				console.log('thisSpheron: ' + JSON.stringify(thisSpheron))
+				console.log('pushing data onto a spherons input queue: ' + JSON.stringify(thisSpheron))
 
 				that._findFreeQueueAddress(thisSpheron, thisTimestamp, newQueueItem, function(newTimeStamp){
 					thisSpheron.inputMessageQueue[newTimeStamp] = (thisSpheron.inputMessageQueue[newTimeStamp]) ? thisSpheron.inputMessageQueue[newTimeStamp] : {}
@@ -877,11 +1015,15 @@ var spheron_runner = {
 					/*
 					* TODO: Check if the connection is multi-variant at the point of entry into the new spheron and if so, set the input message on both connections.
 					*/
-
 					thisSpheron.state = "pending"
 					
 					/*TODO: Or maybe the oldest message time..*/
-					thisSpheron.nextTick = that.systemTick +1
+					//thisSpheron.nextTick = that.systemTick +1
+					thisSpheron.nextTick = Object.keys(thisSpheron.inputMessageQueue)[0]
+					if(thisSpheron.nextTick == null){
+						thisSpheron.nextTick = that.systemTick +1
+					}
+					thisSpheron.nextTick = parseInt(thisSpheron.nextTick)
 
 					console.log('about to persist: ' + JSON.stringify(thisSpheron))
 					mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
@@ -923,12 +1065,23 @@ var spheron_runner = {
 		var oldestMessageAge = that._getOldestTickFromMessageQueue()
 		console.log('oldest message in queue: ' + oldestMessageAge)
 		console.log('system Tick: ' + that.systemTick)
+
 		if(oldestMessageAge != 0 && oldestMessageAge <= that.systemTick){
 			that._inputMessageSigIdIterator(oldestMessageAge, function(){
 				that._inputMessageQueueAgeIterator(callback)	
 			})
 		} else {
 			console.log('no processing to be done within the inputMessageQueue')
+
+/*
+* test
+*/
+/*
+			if(oldestMessageAge > that.systemTick){
+				that.systemTick = oldestMessageAge +1
+			}
+*/
+
 			callback()
 		}
 	},
@@ -1074,9 +1227,6 @@ var spheron_runner = {
 	activate: function(thisSigId, callback){
 		//call the activate function of this spheron
 		var that = this
-		/*
-		* Our new bug - why are we calling a static testIdx in the next statement???????? 
-		*/
 		that.activationIterator(0,0, thisSigId, function(){
 			callback()
 		})
@@ -1142,7 +1292,7 @@ var spheron_runner = {
 					var exclusionMap = that.spheron.variantMaps[mapIdx]
 
 					/*
-					* We have an nasty error - and I don't understand the below...
+					* We have a nasty error - and I don't understand the below...
 					*/ 
 
 					var v = exclusionMap.slice(0);
@@ -1188,6 +1338,14 @@ var spheron_runner = {
 	persistSpheron: function(callback){
 		//TODO: commit this spheron to mongo
 		var that = this
+		console.log(Object.keys(that.spheron.inputMessageQueue)[0])
+		
+		var oldestMessageAge = that._getOldestTickFromMessageQueue()
+		if(oldestMessageAge > that.systemTick){
+			this.spheron.state='pending'
+			this.spheron.nextTick=that.systemTick +1
+		}
+
 		mongoUtils.persistSpheron((that.spheron).spheronId, that.spheron,function(){
 			callback()	
 		})

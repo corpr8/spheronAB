@@ -99,7 +99,7 @@ var mongoUtils = {
 	assessIfLessonPassed(problemId, lowestFound, callback){
 		mongoNet.findOne({
 			type: "lesson",
-			problemId: lessonId
+			problemId: problemId
 		}, function(err, results) {
 	    	if (err){
 	    		callback();
@@ -107,7 +107,7 @@ var mongoUtils = {
 	    		if(lowestFound < results.options.errorThreshold){
 					mongoNet.findOneAndUpdate({
 						type: "lesson",
-						problemId: lessonId
+						problemId: problemId
 					},{
 						$set: {mode:"trained"}
 					}, 
@@ -215,7 +215,7 @@ var mongoUtils = {
 		//nextTick: { $lt: thisNextTick },
 					//
 		mongoNet.findOneAndUpdate({
-			nextTick: { $lte: tickStamp },
+			nextTick: { $lt: tickStamp },
 			type:"spheron",
 			state:"pending"
 		},{
@@ -225,7 +225,7 @@ var mongoUtils = {
 			sort: {nextTick: -1}
 		}, function(err,doc){
 			if(err){
-				console.log('no pending spherons')
+				console.log('no pending spherons: ' + err)
 				callback({})
 			} else if (doc.value != null){ 
 				console.log('spheron is: ' + JSON.stringify(doc.value))
@@ -253,14 +253,14 @@ var mongoUtils = {
 			}	
 		})
 	},
-	_mutationOperators: {
-		/*
-		* 1: clone + tweak connection (in new or existent A/B group)
-		* 2: add connection to random existent spheron (in new or existent A/B)
-		* 3: add connection to new spheron (in new A/B)
-		* 4: remove connection (in new or existent A/B group)
-		* 5: remove spheron? Or is this a function of a spheron not having any outputs - or not being in an audit path - for any A/B tests for this problemId???
-		*/
+	getTrainigData: function(problemId,callback){
+		mongoNet.findOne({
+			type: "lesson",
+			problemId: problemId
+		}, function(err, result) {
+	    	if (err) throw err;
+	    	callback(result.tests)
+		});		
 	}
 }
 
