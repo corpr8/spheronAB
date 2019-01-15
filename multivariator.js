@@ -1,9 +1,3 @@
-var thisMapsSample = [
-	[12,23,34],
-	[21,32,43],
-	[212,323,434]
-]
-
 /*
 * All combinations from each array exclusively (i.e. 1 from each array is excluded at any given time)
 *
@@ -17,12 +11,9 @@ var thisMapsSample = [
 *
 * It will return an array of arrays which define what to exclude from each test.
 *
-* i.e. in the above, the first exclusion would be: [12,23] as we only want to test 34
-*
-* We can then use this in the spheron main code to run fully divergent tests....
-*
-* Test using: v.multivariate([[12,22,33],[33,44,55],[99,89,78]], function(){console.log('all done')})
-* Note: although diplayed as a single row, the data on each line is actually in the form [aa,bb],[cc,dd],[ee,ff]
+* i.e. in the above, the first exclusion would be: [12,23],[21,32],[212,323] as we only want to test 34, 21 and 212 at the same time
+* We can then use this in the spheron main code to update the exclusion maps for each spheron activation....
+* node ./tests/multivariator_test.js
 *
 */
 
@@ -46,7 +37,6 @@ var multivariator = {
 		if(thisMapIdxArray[0] < thisMaps[0].length){
 			multivariator.buildExcludedArrays(thisMaps, thisMapIdxArray, function(ourResultantArray){
 				that.finalOutput.push(ourResultantArray)
-
 				thisMapIdxArray[0] += 1
 				that.MapPointerIterator(thisMaps, thisMapIdxArray, MapIdxArrayPointer, callback)
 			})
@@ -72,10 +62,8 @@ var multivariator = {
 	buildExcludedArrays: function(thisMaps, sourceArrays, callback){
 		var that = this
 		that._buildExcludedArraysIterator(thisMaps, sourceArrays, 0, [], function(resultantArrays){
-			//console.log('done building exclusion arrays:' + resultantArrays)
 			callback(resultantArrays)
 		})
-
 	},
 	_buildExcludedArraysIterator: function(thisMaps, sourceArrays, sourceArraysIdx, resultantArray, callback){
 		var that = this
@@ -115,14 +103,7 @@ var multivariator = {
 		var that = this
 		that.finalOutput = []
 		multivariator.MapIterator(sourceVariantArrays, null, function(){
-			/*
-			* we should put module output here...
-			*/
-			console.log('length of 0th output is: ' + that.finalOutput[0].length)
-			for(var v=0;v<that.finalOutput.length;v++){
-				console.log('ourResultantArray['+v+'] is: ' + that.finalOutput[v])
-			}
-			callback()
+			callback(that.finalOutput)
 		})		
 	}
 }
