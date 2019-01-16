@@ -1,1 +1,11 @@
+Log everything:
 node ./spheron_runner.js > out.txt 2>&1
+
+Bind mongo locally for a project - (i.e. if in flight mode):
+
+sudo ifconfig lo0 alias 192.168.61.1
+mongod --bind_ip 192.168.61.1
+
+
+remove alias:
+sudo ifconfig lo0 -alias 192.168.61.1

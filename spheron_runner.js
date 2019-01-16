@@ -9,6 +9,7 @@ var Spheron = require('./spheron.js')
 var generateUUID = require('./generateUUID.js')
 var UdpUtils;
 var udpUtils;
+var multivariator = require('./multivariator.js')
 //commented out the UDP stuff as we are flying...
 //UdpUtils = require('./udpUtils.js')
 //udpUtils = new UdpUtils()
@@ -360,6 +361,7 @@ var spheron_runner = {
 		//we should mutate - which way?
 		var that = this
 		switch(Math.floor(Math.random() * 2)) {
+			/*
 			case 0:
 				console.log('mutation: clone / tweak bias')
 				that.cloneTweakBias(function(){
@@ -368,6 +370,7 @@ var spheron_runner = {
 					callback()
 				})
 				break;
+			*/	
 			case 1:
 				console.log('mutation: clone / tweak connection')
 				that.cloneTweakConnection(function(){
@@ -1266,8 +1269,7 @@ var spheron_runner = {
 					} else{
 						delete that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant
 						that._inputMessageSigIdIterator(timestamp, callback)
-					}
-					
+					}				
 				} else if (that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]){
 					console.log('***in the multivariant queue handler...')
 					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";").length -1]
@@ -1356,7 +1358,7 @@ var spheron_runner = {
 	activate: function(thisSigId, callback){
 		//call the activate function of this spheron
 		var that = this
-		that.activationIterator(0,0, thisSigId, function(){
+		that.activationIterator(null, 0,0, thisSigId, function(){
 			callback()
 		})
 	},
@@ -1386,7 +1388,7 @@ var spheron_runner = {
 		}
 		return
 	},
-	activateNonVariant: function(mapIdx, testIdx, thisSigId, callback){
+	activateNonVariant: function(testIdx, thisSigId, callback){
 		var that = this
 		that.spheron.activate(null, null, function(thisResult){
 			that._cleanupInputMessageQueue()
@@ -1413,35 +1415,30 @@ var spheron_runner = {
 			callback()
 		})
 	},
-	activationIterator:function(mapIdx, testIdx, thisSigId, callback){
+	activationIterator:function(variatedMap, mapIdx, testIdx, thisSigId, callback){
 		//automatically handle internal A/B - i.e. if this spheron has a variantMap then we need to fire for each (exclusively)
 		var that = this
 		if(that.spheron.variantMaps.length == 0){
-			that.activateNonVariant(mapIdx, testIdx, thisSigId, function(){
+			that.activateNonVariant(testIdx, thisSigId, function(){
 				callback()
 			})
 		} else {
-			var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()
-			if(mapIdx < that.spheron.variantMaps.length){
-				if(testIdx < that.spheron.variantMaps[mapIdx].length){
-					var exclusionMap = that.spheron.variantMaps[mapIdx]
-
-					/*
-					* We have a nasty error - and I don't understand the below...
-					*/ 
-
-					var v = exclusionMap.slice(0);
-					console.log('pre sliced exclusion map is: ' + v.join(';'))
-
-					v.splice(testIdx,1)
-					
-					console.log('our current exclusion map is: ' + v.join(';'))
-
+			if(!variatedMap){
+				multivariator.multivariate(that.spheron.variantMaps, function(thisVariatedMap){
+					console.log('variating has been done:')
+					for(var v=0;v<thisVariatedMap.length;v++){
+						console.log(thisVariatedMap[v].join(','))
+					}
+					console.log('----')
+					that.activationIterator(thisVariatedMap, mapIdx, testIdx, thisSigId, callback)
+				})
+			} else {
+				var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()
+				if(mapIdx < variatedMap.length){
+					var v = variatedMap[mapIdx].join(',')
 					that.spheron.activate(null, v, function(thisResult){
-			
 						that._cleanupInputMessageQueue()
 
-						console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
 						if(Object.keys(that.spheron.inputMessageQueue)[0]){
 							that.spheron.state = "pending"
 							that.spheron.nextTick = that.systemTick +1
@@ -1457,13 +1454,11 @@ var spheron_runner = {
 							console.log(that.spheron.problemId)
 						}
 						console.log(that.spheron.propagationMessageQueue[systemTickPlusOne])
-						that.activationIterator(mapIdx, testIdx +1, thisSigId, callback)
+						that.activationIterator(variatedMap, mapIdx +1, testIdx, thisSigId, callback)
 					})
 				} else {
-					that.activationIterator(mapIdx +1, 0, thisSigId, callback)
-				}
-			} else {
-				callback()
+					callback()
+				}				
 			}
 		}
 	},
