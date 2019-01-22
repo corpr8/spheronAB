@@ -113,6 +113,7 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 	* now cycle the outputs and add them to thisResults as well as updating their value - if they are not excluded from test
 	*/
 	var theseOutputs = []
+	var theseInputIdxs = []
 	for(var key in this.io) {
 		var thisConn = this.io[key]
 		var excludeThis = false
@@ -124,6 +125,9 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 		if(excludeThis == false){
 			if(thisConn.type == 'output' || thisConn.type == 'extOutput'){
 				theseOutputs.push(thisConn.id)
+			}
+			if(thisConn.type == 'input' || thisConn.type == 'extInput'){
+				theseInputIdxs.push(key)
 			}
 		}
 	}
@@ -152,7 +156,7 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 				} else {
 					thisResults[theseOutputs[thisOutput]].path = thisResults[theseOutputs[thisOutput]].path + ';' + thisConn.path
 				}
-				thisResults[theseOutputs[thisOutput]].testIdx = that.io[0].testIdx
+				thisResults[theseOutputs[thisOutput]].testIdx = that.io[theseInputIdxs[0]].testIdx //<--- Why [0]???????
 			}
 
 			if(thisConn.type == 'output' || thisConn.type == 'extOutput'){

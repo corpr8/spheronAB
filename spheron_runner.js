@@ -88,7 +88,11 @@ var spheron_runner = {
 
 		        that.mutator(function(){
 					phaseIdx += 1
-			    	that.processSpheron(phaseIdx, callback)
+					that.persistSpheron(function(){
+						process.nextTick(function(){
+					    	that.processSpheron(phaseIdx, callback)
+					    })
+				    })
 		        })
 				break;
 			case 1:
@@ -105,7 +109,9 @@ var spheron_runner = {
 		        	console.log('finished Phase1.')
 		        	console.log('dump: ' + JSON.stringify(that.spheron))
 			        phaseIdx += 1
-				    that.processSpheron(phaseIdx, callback)
+			        process.nextTick(function(){
+				    	that.processSpheron(phaseIdx, callback)
+				    })
 				    
 		        })
 		        break;
@@ -119,7 +125,9 @@ var spheron_runner = {
 					console.log('dump: ' + JSON.stringify(that.spheron))
 					//Suggest we check the lesson state here and if it is not autoTrain, jump to phase 6
 			        phaseIdx += 1
-				    that.processSpheron(phaseIdx, callback)
+			        process.nextTick(function(){
+				    	that.processSpheron(phaseIdx, callback)
+				    })
 				})
 				break;
 			case 3:
@@ -135,7 +143,9 @@ var spheron_runner = {
 		        console.log('Phase3: propagating backprop messages for spheron: ' + that.spheron.spheronId)
 				that.backpropIterator(null, 0, function(){
 					phaseIdx += 1
-		    		that.processSpheron(phaseIdx, callback)
+					process.nextTick(function(){
+		    			that.processSpheron(phaseIdx, callback)
+		    		})
 				})
 		        break;
 		    case 4:
@@ -151,7 +161,9 @@ var spheron_runner = {
 		        console.log('Phase4: handle multi-variant data storage and resolution')
 				that.processCompleteMVTests(function(){
 					phaseIdx += 1
-		    		that.processSpheron(phaseIdx, callback)
+					process.nextTick(function(){
+		    			that.processSpheron(phaseIdx, callback)
+		    		})
 				})
 				break;
 		    case 5:
@@ -161,14 +173,18 @@ var spheron_runner = {
 				console.log('Phase5: persisting this spheron back to mongo...')
 		    	that.persistSpheron(function(){
 		    		phaseIdx += 1
-		    		that.processSpheron(phaseIdx, callback)
+		    		process.nextTick(function(){
+		    			that.processSpheron(phaseIdx, callback)
+		    		})
 		    	})
 		        break;
 		    default:
 		    	console.log('in default phase handler (i.e. The fallback.) - phase is: ' + phaseIdx)
 		    	if(phaseIdx <= 6){
 		    		phaseIdx += 1
-		    		that.processSpheron(phaseIdx, callback)
+		    		process.nextTick(function(){
+		    			that.processSpheron(phaseIdx, callback)
+		    		})
 		    	} else {
 			    	console.log('Phase6: loading new tests into the spheron')
 				    /*
@@ -177,7 +193,7 @@ var spheron_runner = {
 				    */
 					that.maintainTrainingQueue(function(){
 						phaseIdx = 0
-			    		callback()
+						callback()
 					})
 		    	}
 		}
@@ -340,7 +356,7 @@ var spheron_runner = {
 		var trainMode = mongoUtils.getLessonModeById(that.spheron.problemId, function(currentMode){
 			console.log('lesson is in ' + currentMode + ' mode')
 			if(currentMode == 'autoTrain'){
-				if( Math.random() > .8){
+				if( Math.random() > .9){
 					that.mutationSelector(function(){
 						//TODO: Note - I do not believe that the persist function below is strictly necessary - however, it is good for the debug...
 						that.persistSpheron(function(){
@@ -413,7 +429,10 @@ var spheron_runner = {
 
 				if(currentConnection.type == 'input'){
 					newConnection.fromId = currentConnection.fromId
+
 				}
+				newConnection.testIdx = -1
+				newConnection.sigId = -1
 
 				console.log('new connection is: ' + JSON.stringify(newConnection))
 
@@ -520,9 +539,12 @@ var spheron_runner = {
 	isConnectionInMVTestIterator: function(thisConnection, mvTestIdx, mvTestItemIdx, callback){
 		var that = this
 		if(that.spheron.variantMaps[mvTestIdx]){
+			console.log('that.spheron.variantMaps[' + mvTestIdx + ']: ' + that.spheron.variantMaps[mvTestIdx])
 			if(that.spheron.variantMaps[mvTestIdx][mvTestItemIdx]){
-				//console.log('comparing: ' + spheron_runner.spheron.variantMaps[mvTestIdx][mvTestItemIdx] + ' against: ' + mvTestIdx)
-				if(that.spheron.variantMaps[mvTestIdx][mvTestItemIdx] == thisConnection){
+				console.log('that.spheron.variantMaps[mvTestIdx][' + mvTestItemIdx + ']: ' + that.spheron.variantMaps[mvTestIdx][mvTestItemIdx])
+				console.log('comparing: ' + that.spheron.variantMaps[mvTestIdx][mvTestItemIdx] + ' against: ' + thisConnection.id)
+				if(that.spheron.variantMaps[mvTestIdx][mvTestItemIdx] == thisConnection.id){
+					console.log('we found a matching multivariant test')
 					callback({mvTestIdx: mvTestIdx, mvTestItemIdx: mvTestItemIdx})
 				} else {
 					that.isConnectionInMVTestIterator(thisConnection, mvTestIdx, mvTestItemIdx +1, callback)
@@ -1074,6 +1096,25 @@ var spheron_runner = {
 			}
 		})
 	},
+	typeOfConnection(thisSpheron, connectionId, callback){
+		console.log('searching:' + thisSpheron.spheronId + ' for a connection: ' + connectionId)
+		var that = this
+		that._typeOfConnectionIterator(thisSpheron, connectionId, 0, function(result){
+			callback(result)
+		})
+	},
+	_typeOfConnectionIterator(thisSpheron, targetConnectionId, connectionIdx, callback){
+		var that = this
+		if(thisSpheron.io[connectionIdx]){
+			if(thisSpheron.io[connectionIdx].id == targetConnectionId){
+				callback(thisSpheron.io[connectionIdx].type)
+			} else {
+				that._typeOfConnectionIterator(thisSpheron, targetConnectionId, connectionIdx+1, callback)
+			}
+		} else {
+			callback(false)
+		}
+	},
 	_updateSpheronInputQueue(spheronId, newQueueItem, thisTimestamp, callback){
 		var that = this
 		console.log('trying to update spheron with id: ' + spheronId)
@@ -1088,6 +1129,7 @@ var spheron_runner = {
 				callback()
 			})
 		} else {
+			console.log('###thisSpheron: ' + spheronId)
 			mongoUtils.getSpheron(spheronId, function(thisSpheron){
 
 				/*
@@ -1098,8 +1140,9 @@ var spheron_runner = {
 				* 1: A future tick which has this sigId
 				* 2: A future tick which is vacant.
 				*/
-
-				console.log('pushing data onto a spherons input queue: ' + JSON.stringify(thisSpheron))
+				console.log('pushing new queue item onto ' + thisSpheron.spheronId + ' :' + JSON.stringify(newQueueItem))
+				console.log(thisSpheron.spheronId + ' variantMap is: ' + thisSpheron.variantMaps)
+				//console.log('pushing data onto a spherons input queue: ' + JSON.stringify(thisSpheron))
 
 				that._findFreeQueueAddress(thisSpheron, thisTimestamp, newQueueItem, function(newTimeStamp){
 					thisSpheron.inputMessageQueue[newTimeStamp] = (thisSpheron.inputMessageQueue[newTimeStamp]) ? thisSpheron.inputMessageQueue[newTimeStamp] : {}
@@ -1116,14 +1159,120 @@ var spheron_runner = {
 					/*
 					* TODO: Check if the connection is multi-variant at the point of entry into the new spheron and if so, set the input message on both connections.
 					*/
-					var newQueueItemPathTail = that._getPathTail(newQueueItem.path)
-					//that._searchIsVariantInput(newQueueItemPathTail, function(matchingTest){
 
+					console.log('variant Maps: ' + thisSpheron.variantMaps)
+
+
+/*
+					multivariator.isVariated(newQueueItem.path, thisSpheron.variantMaps, function(isVariated){
+						console.log('inmultivariator callback')
+						console.log('isVariated:' + JSON.stringify(isVariated))
+
+						if(isVariated != false){
+							//just a test...
+							console.log('isVariated.map.length: ' +isVariated.map.length)
+
+							that.typeOfConnection(thisSpheron, isVariated.id, function(variatedConnectionType){
+								console.log('our type of connection is: '+ variatedConnectionType)
+								if( variatedConnectionType == 'input'){
+									console.log('we have found an input which requires duplicating across...')
+									var validObject = {}
+									for(v=0;v<thisSpheron.io.length;v++){
+										if(thisSpheron.io[v].id == isVariated.id){
+											validObject = thisSpheron.io[v]
+										}
+									}
+
+									for(v=0;v<isVariated.map.length;v++){
+										console.log('isVariated.map[v]: ' + isVariated.map[v])
+										for(w=0;w<thisSpheron.io.length;w++){
+											console.log('isVariated.map[v].id: ' + isVariated.map[v].id + ' validObject.id: ' + validObject.id)
+											if(isVariated.map[v].id != validObject.id){
+												console.log('updating connection object with id: ' + isVariated.map[v].id)
+												thisSpheron.io[w].val = validObject.val
+												thisSpheron.io[w].testIdx = validObject.testIdx
+											}
+										}
+									}
+									
+									mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
+										callback()
+									})
+								} else {
+									console.log('isVariated result: ' + JSON.stringify(isVariated))
+									mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
+										callback()
+									})
+								}
+							})
+						} else {
+							var newQueueItemPathTail = that._getPathTail(newQueueItem.path)
+							console.log('****** new queue path tail:  ' + newQueueItemPathTail)
+
+							//TODO: Now handle the other ones in matchingTest
+							thisSpheron.state = "pending"
+							
+							//thisSpheron.nextTick = that.systemTick +1
+							thisSpheron.nextTick = Object.keys(thisSpheron.inputMessageQueue)[0]
+							if(thisSpheron.nextTick == null){
+								thisSpheron.nextTick = that.systemTick +1
+							}
+							thisSpheron.nextTick = parseInt(thisSpheron.nextTick)
+							console.log('about to persist: ' + JSON.stringify(thisSpheron))
+							mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
+								callback()
+							})
+
+						}
+						
+					})
+*/
+
+							var newQueueItemPathTail = that._getPathTail(newQueueItem.path)
+							console.log('****** new queue path tail:  ' + newQueueItemPathTail)
+
+							//TODO: Now handle the other ones in matchingTest
+							thisSpheron.state = "pending"
+							
+							//thisSpheron.nextTick = that.systemTick +1
+							thisSpheron.nextTick = Object.keys(thisSpheron.inputMessageQueue)[0]
+							if(thisSpheron.nextTick == null){
+								thisSpheron.nextTick = that.systemTick +1
+							}
+							thisSpheron.nextTick = parseInt(thisSpheron.nextTick)
+							console.log('about to persist: ' + JSON.stringify(thisSpheron))
+							mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
+								callback()
+							})
+
+
+
+					/*
+					var newQueueItemPathTail = that._getPathTail(newQueueItem.path)
+					console.log('****** new queue path tail:  ' + newQueueItemPathTail)
+
+					//TODO: Now handle the other ones in matchingTest
+					thisSpheron.state = "pending"
+					
+					//thisSpheron.nextTick = that.systemTick +1
+					thisSpheron.nextTick = Object.keys(thisSpheron.inputMessageQueue)[0]
+					if(thisSpheron.nextTick == null){
+						thisSpheron.nextTick = that.systemTick +1
+					}
+					thisSpheron.nextTick = parseInt(thisSpheron.nextTick)
+					console.log('about to persist: ' + JSON.stringify(thisSpheron))
+					mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
+						callback()
+					})
+
+					
+					that._searchIsVariantInput(thisSpheron, newQueueItemPathTail, function(matchingTest){
+						console.log('matching test is: ' + matchingTest)
 
 						//TODO: Now handle the other ones in matchingTest
 						thisSpheron.state = "pending"
 						
-						/*TODO: Or maybe the oldest message time..*/
+						TODO: Or maybe the oldest message time..
 						//thisSpheron.nextTick = that.systemTick +1
 						thisSpheron.nextTick = Object.keys(thisSpheron.inputMessageQueue)[0]
 						if(thisSpheron.nextTick == null){
@@ -1135,22 +1284,24 @@ var spheron_runner = {
 						mongoUtils.persistSpheron(thisSpheron.spheronId, thisSpheron, function(){
 							callback()
 						})
-					//})
+					})
+				*/
 				})
 			})
 		}
 	},
-	_searchIsVariantInput: function(queueItemPathTail, callback){
+	_searchIsVariantInput: function(thisSpheron, queueItemPathTail, callback){
 		/*
 		* Note: this should actually be handled via variant exclusion mapping.... easing development of this code...
 		*/
 		console.log('searching to see if we have variants of: ' + queueItemPathTail)
+		//console.log('thisSpheron:' + JSON.stringify(thisSpheron))
 		//console.log('searching to see if we have variants of: ' + queueItem.path.split(';'))
 		var that = this
-		that._searchIsVariantInputIterator(0, 0, queueItemPathTail, function(foundTest){
+		that._searchIsVariantInputIterator(thisSpheron, 0, 0, queueItemPathTail, function(foundTest){
 			if(foundTest != null){
 				console.log('we found a matching variant input queue item: ' + foundTest)
-				console.log('todo: Firing for each of the variants...')
+				console.log('todo: Fire input message to each of the input variants...')
 				process.exit()
 
 			} else {
@@ -1158,18 +1309,18 @@ var spheron_runner = {
 			}
 		})
 	},
-	_searchIsVariantInputIterator: function(mapIdx, mapItemIdx, queueItemPathTail, callback){
+	_searchIsVariantInputIterator: function(thisSpheron, mapIdx, mapItemIdx, queueItemPathTail, callback){
 		var that = this
-		if(that.spheron.variantMaps[mapIdx]){
-			if(that.spheron.variantMaps[mapIdx][mapItemIdx]){
-				console.log('testItem is: ' + that.spheron.variantMaps[mapIdx][mapItemIdx])
-				if(that.spheron.variantMaps[mapIdx][mapItemIdx] == queueItemPathTail){
-					callback(that.spheron.variantMaps[mapIdx])
+		if(thisSpheron.variantMaps[mapIdx]){
+			if(thisSpheron.variantMaps[mapIdx][mapItemIdx]){
+				console.log('testItem is: ' + thisSpheron.variantMaps[mapIdx][mapItemIdx])
+				if(thisSpheron.variantMaps[mapIdx][mapItemIdx] == queueItemPathTail){
+					callback(thisSpheron.variantMaps[mapIdx])
 				} else {
-					that._searchIsVariantInputIterator(mapIdx, mapItemIdx +1, queueItemPathTail, callback)	
+					that._searchIsVariantInputIterator(thisSpheron, mapIdx, mapItemIdx +1, queueItemPathTail, callback)	
 				}
 			} else {
-				that._searchIsVariantInputIterator(mapIdx +1, 0, queueItemPathTail, callback)
+				that._searchIsVariantInputIterator(thisSpheron, mapIdx +1, 0, queueItemPathTail, callback)
 			}
 		} else {
 			callback()
@@ -1225,6 +1376,14 @@ var spheron_runner = {
 		that._getSigIdFromMessageQueue(timestamp, function(thisSigId){
 			console.log('thisSigId is: ' + thisSigId)
 			if(thisSigId){
+				/*
+				* We should now check if the input message is part of a variant or not and activate for each if it is...
+				*/
+
+
+
+
+
 				if(that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant){
 					if(typeof that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0] != 'undefined'){
 						var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].nonVariant[0]).path).split(";").length -1]
@@ -1273,25 +1432,53 @@ var spheron_runner = {
 				} else if (that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]){
 					console.log('***in the multivariant queue handler...')
 					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";").length -1]
-					that._searchUpdateInputIterator(targetInput, that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0], 0, function(){
-						(that.spheron.inputMessageQueue[timestamp][thisSigId].variant).shift()
-						that.activate(thisSigId, function(){
-							console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
-							if(Object.keys(that.spheron.inputMessageQueue)[0]){
-								that.spheron.state = "pending"
-								that.spheron.nextTick = that.systemTick +1
-							} else {
-								that.spheron.state = "idle"
-							}
-							that._inputMessageSigIdIterator(timestamp, callback)
-						})
+					var targetMessage = that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]
+
+
+
+					//New stuff to test...
+					multivariator.isVariated(targetMessage.path, that.spheron.variantMaps, function(variatedOutputs){
+						if(variatedOutputs != false){
+
+
+
+							console.log(that.spheron.spheronId + ' is variated: ' + JSON.stringify(variatedOutputs))	
+							that._searchUpdateVariantIterator(variatedOutputs, 0, targetInput, targetMessage, function(){
+								(that.spheron.inputMessageQueue[timestamp][thisSigId].variant).shift()
+								if(Object.keys(that.spheron.inputMessageQueue)[0]){
+									that.spheron.state = "pending"
+									that.spheron.nextTick = that.systemTick +1
+								} else {
+									that.spheron.state = "idle"
+								}
+								that._inputMessageSigIdIterator(timestamp, callback)
+
+							})
+
+
+						} else {
+							console.log('targetMessage: ' + JSON.stringify(targetMessage))
+							that._searchUpdateInputIterator(targetInput, targetMessage, 0, function(){
+								(that.spheron.inputMessageQueue[timestamp][thisSigId].variant).shift()
+								that.activate(thisSigId, function(){
+									
+									console.log("**inputMessageQueue item0: " + Object.keys(that.spheron.inputMessageQueue)[0])
+									if(Object.keys(that.spheron.inputMessageQueue)[0]){
+										that.spheron.state = "pending"
+										that.spheron.nextTick = that.systemTick +1
+									} else {
+										that.spheron.state = "idle"
+									}
+									that._inputMessageSigIdIterator(timestamp, callback)
+								})
+							})
+						}
 					})
 				} else {
 					console.log('***empty sigId...')
 					delete that.spheron.inputMessageQueue[timestamp]
 					callback()
 				}
-
 			} else {
 				console.log('***no sigId...')
 				delete that.spheron.inputMessageQueue[timestamp]
@@ -1300,26 +1487,41 @@ var spheron_runner = {
 
 		})
 	},
+	_searchUpdateVariantIterator: function(variatedOutputs, variationIdx, targetInput, targetMessage, callback){
+		 var that = this
+		if(variatedOutputs.map[variationIdx]){
+			var thisTargetMessage = targetMessage
+			thisTargetMessage.path.replace(variatedOutputs.id, variatedOutputs.map[variationIdx])
+			that._searchUpdateInputIterator(targetInput, thisTargetMessage, 0, function(){
+				that._searchUpdateVariantIterator(variatedOutputs, variationIdx +1, targetInput, targetMessage, callback)
+			})
+			//targetMessage: {"problemId":"whatIsAnd","path":"input1;bias1;internal1","testIdx":0,"val":-0.17365,"isVariant":true,"sigId":"sigId-123456789"}
+			
+		} else {
+			callback()
+		}
+	},
 	_searchUpdateInputIterator: function(targetInput, updateMessage, idx, callback){
 		var that = this
 		if(idx < that.spheron.io.length){
-			if(that.spheron.io[idx].id == targetInput){
-				//now we update this input.
-				//TODO: extend for pathing.
-				console.log('our updatemessage is: ' + JSON.stringify(updateMessage))
-				that.spheron.io[idx].val = updateMessage.val
-				that.spheron.io[idx].sigId = updateMessage.sigId
-				that.spheron.io[idx].testIdx = updateMessage.testIdx
-				that.spheron.io[idx].path = updateMessage.path
-				that.spheron.io[idx].isVariant = updateMessage.isVariant
-				that.spheron.io[idx].problemId = updateMessage.problemId
-				that.spheron.io[idx].testIdx = updateMessage.testIdx
-				console.log('updated connection: ' + JSON.stringify(that.spheron.io[idx]))
-				callback()
-			}else {
-				idx += 1
-				that._searchUpdateInputIterator(targetInput, updateMessage, idx, callback)
-			}
+				if(that.spheron.io[idx].id == targetInput){
+					//now we update this input.
+					//TODO: extend for pathing.
+					console.log('our updatemessage is: ' + JSON.stringify(updateMessage))
+					that.spheron.io[idx].val = updateMessage.val
+					that.spheron.io[idx].sigId = updateMessage.sigId
+					that.spheron.io[idx].testIdx = updateMessage.testIdx
+					that.spheron.io[idx].path = updateMessage.path
+					that.spheron.io[idx].isVariant = updateMessage.isVariant
+					that.spheron.io[idx].problemId = updateMessage.problemId
+					that.spheron.io[idx].testIdx = updateMessage.testIdx
+					console.log('updated connection: ' + JSON.stringify(that.spheron.io[idx]))
+					callback()
+				}else {
+					idx += 1
+					that._searchUpdateInputIterator(targetInput, updateMessage, idx, callback)
+				}
+
 		} else {
 			callback()
 		}

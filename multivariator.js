@@ -94,7 +94,10 @@ var multivariator = {
 			if(sourceArrayIdx != excludedIdx){
 				resultantArray.push(sourceArray[sourceArrayIdx])
 			}
-			that._excludeFromArrayIterator(sourceArray, resultantArray, sourceArrayIdx +1, excludedIdx, callback)
+			process.nextTick(function(){
+				that._excludeFromArrayIterator(sourceArray, resultantArray, sourceArrayIdx +1, excludedIdx, callback)	
+			})
+			
 		} else {
 			callback(resultantArray)
 		}
@@ -105,6 +108,33 @@ var multivariator = {
 		multivariator.MapIterator(sourceVariantArrays, null, function(){
 			callback(that.finalOutput)
 		})		
+	},
+	isVariated: function(path, variantMaps, callback){
+		var that = this
+		if(path.substring(-1) != ';'){
+			path += ';'
+		}
+		that.isVariatedIterator(path, variantMaps, 0, 0, function(result){
+			callback(result)
+		})
+	},
+	isVariatedIterator: function(path, variantMaps, variantMapIdx, variantMapIdxItemIdx, callback){
+		console.log('in multivariator')
+		//note: will currentlhy only pull back the first iterant.
+		if(variantMaps[variantMapIdx]){
+			if(variantMaps[variantMapIdx][variantMapIdxItemIdx]){
+				console.log('searching for: ' + variantMaps[variantMapIdx][variantMapIdxItemIdx])
+				if(path.substring(variantMaps[variantMapIdx][variantMapIdxItemIdx]) != -1){
+					callback({map: variantMaps[variantMapIdx], id: variantMaps[variantMapIdx][variantMapIdxItemIdx]})
+				} else {
+					isVariatedIterator(path, variantMaps, variantMapIdx, variantMapIdxItemIdx +1, callback)
+				}
+			} else {
+				isVariatedIterator(path, variantMaps, variantMapIdx +1, 0, callback)
+			}
+		} else {
+			callback(false)
+		}
 	}
 }
 
