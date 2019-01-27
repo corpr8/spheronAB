@@ -142,17 +142,20 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 		}
 
 		if(excludeThis == false){
-			console.log('thisConn path: ' + thisConn.path)
+			//console.log('thisConn path: ' + thisConn.path)
 			thisConn.path = (thisConn.path !== undefined) ? thisConn.path : thisConn.id
-			console.log('thisConn path is now: ' + thisConn.path)
+			console.log('thisConn path is: ' + thisConn.path)
 			
 			for(var thisOutput in theseOutputs){
+
 				if(typeof thisResults[theseOutputs[thisOutput]] == "undefined"){
 					thisResults[theseOutputs[thisOutput]] = {}
 				}
 
+				thisResults[theseOutputs[thisOutput]].toPort = thisConn.toPort
 				if(typeof thisResults[theseOutputs[thisOutput]].path == "undefined"){
 					thisResults[theseOutputs[thisOutput]].path = thisConn.path
+
 				} else {
 					thisResults[theseOutputs[thisOutput]].path = thisResults[theseOutputs[thisOutput]].path + ';' + thisConn.path
 				}
@@ -178,6 +181,14 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 
 				/*does not work currently*/
 				thisResults[that.io[key].id].isVariant = thisConn.isVariant
+
+				/*
+				* lets dump the destination port into 'toPort' so we can make propagation simpler for multivariant use cases.
+				* Rather than getting it from the message path - as the message path will contain variants and the current
+				* method uses duplicate naming to denote a path at the network level...
+				*
+				* Check the activation iterator as we will need to use it there. (1568)
+				*/
 			}
 		} else {
 			//console.log('we excluded: ' + thisConn.id)
