@@ -7,26 +7,25 @@
 var mongoUtils = require('./mongoUtils.js')
 var Spheron = require('./spheron.js')
 var generateUUID = require('./generateUUID.js')
+var multivariator = require('./multivariator.js')
 var UdpUtils;
 var udpUtils;
-var multivariator = require('./multivariator.js')
-//commented out the UDP stuff as we are flying...
-//UdpUtils = require('./udpUtils.js')
-//udpUtils = new UdpUtils()
 
 //var testData = require('./tests/newFormatData1/AND-basicProblemDefinitionV2-nonVariant.json')
+//testData: './tests/newFormatData1/basicProblemDefinitionV2-multiVariant.json
 var spheron_runner = {
 	settings:{
 		maxTests: 3,
 		maxTestItems: 4,
 		loadTestData: true,
-		testData: './tests/newFormatData1/basicProblemDefinitionV2-multiVariant.json',
+		testData: './tests/newFormatData1/basicProblemDefinitionV2-multiVariant-variated_output.json',
 		persistAfterPhase : [true, false, false, false, false, true, false],
 		ifPersistUpdateState : [false, false, false, false, false, true, false],
 		haltAfterTick: true,
-		haltAfterTickNo: 1,
+		haltAfterTickNo: 5,
 		haltAfterProcessingSpheron: false,
-		haltAfterProcessingSpheronId: 'outputSpheron1'
+		haltAfterProcessingSpheronId: 'outputSpheron1',
+		loadUDP: false
 	},
 	spheron: null,
 	systemTickTimer: null,
@@ -34,6 +33,13 @@ var spheron_runner = {
 	inTick: false,
 	init: function(callback){
 		var that = this
+
+		//disable UDP if as we are offline...
+		if(that.settings.loadUDP){
+			udpUtils = require('./udpUtils.js')
+			udpUtils = new UdpUtils()
+		}
+
 		mongoUtils.init(function(){
 			if(that.settings.loadTestData == true){
 				var testData = require(that.settings.testData)
