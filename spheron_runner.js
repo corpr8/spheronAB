@@ -67,7 +67,7 @@ var spheron_runner = {
 		var that = this
 		if(this.inTick == false){
 			this.inTick = true
-			logger.log(moduleName, 4,'systemTick: ' + that.systemTick)
+			logger.log(moduleName, 1,'systemTick: ' + that.systemTick)
 			mongoUtils.getNextPendingSpheron(that.systemTick, function(result){ 
 				if(that.isSpheron(result) == true){
 					that.spheron = new Spheron(result, settings.logOptions)
@@ -86,7 +86,7 @@ var spheron_runner = {
 		var that = this
 		switch(phaseIdx) {
 			case 0:
-				logger.log(moduleName, 4,'Begin Processing a Spheron. Tick is: ' + that.systemTick + " spheron id is: " + this.spheron.spheronId)
+				logger.log(moduleName, 2,'Begin Processing a Spheron. Tick is: ' + that.systemTick + " spheron id is: " + this.spheron.spheronId)
 		        /*
 				* Should we mutate?
 				*
@@ -870,9 +870,9 @@ var spheron_runner = {
 		}
 	},	
 	testPushBPErrorToVariantErrorMap: function(inputMsg, callback){
-		logger.log(moduleName, 4,'pushing error to error map.')
+		logger.log(moduleName, 3,'pushing error to error map.')
 		var that = this
-		logger.log(moduleName, 4,'inputMsg is: ' + JSON.stringify(inputMsg))
+		logger.log(moduleName, 3,'inputMsg is: ' + JSON.stringify(inputMsg))
 		that.testMessageIsSubstringInVariantMaps(0, 0, inputMsg, function(foundId){
 			//logger.log(moduleName, 4,'error map:' + foundId)
 			if(foundId != null){
@@ -1350,19 +1350,11 @@ var spheron_runner = {
 				} else if (that.spheron.inputMessageQueue[timestamp][thisSigId].variant.length > 0){
 					logger.log(moduleName, 4,'***in the multivariant queue handler...')
 
-
-					var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";").length -1]
+					//var targetInput = ((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";")[((that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).path).split(";").length -1]
 
 
 					//Test of a new way of addressing input: 
-					//var targetInput = (that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).toPort
-
-
-
-
-
-
-
+					var targetInput = (that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]).toPort
 
 					var targetMessage = that.spheron.inputMessageQueue[timestamp][thisSigId].variant[0]
 
