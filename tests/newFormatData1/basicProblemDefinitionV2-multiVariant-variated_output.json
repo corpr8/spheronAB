@@ -16,7 +16,7 @@
 				{"id" : "input1", "type": "extInput", "angle": 0, "fromId": "ext", "val":-1},
 				{"id" : "bias1", "type": "bias", "angle": 20, "val":-1},
 				{"id" : "internal1", "type": "output", "angle": -60, "toId": "outputSpheron1", "toPort": "internal1", "val":-1},
-				{"id" : "internal1a", "type": "output", "angle": -60, "toId": "outputSpheron1", "toPort": "internal1", "val":-1}
+				{"id" : "internal1a", "type": "output", "angle": -50, "toId": "outputSpheron1", "toPort": "internal1", "val":-1}
 			],
 			"inputMessageQueue": { 
 				"1": {
@@ -67,7 +67,7 @@
 				{"id" : "input2", "type": "extInput", "angle": 0, "val": 0, "fromId": "ext"},
 				{"id" : "bias2", "type": "bias", "angle": 20, "val":-1},
 				{"id" : "internal2", "type": "output", "angle": 60, "val": -1, "toId": "outputSpheron1", "toPort": "internal2"},
-				{"id" : "internal2a", "type": "output", "angle": 60, "val": -1, "toId": "outputSpheron1", "toPort": "internal2"}
+				{"id" : "internal2a", "type": "output", "angle": 65, "val": -1, "toId": "outputSpheron1", "toPort": "internal2"}
 			],
 			"inputMessageQueue": {
 				"1": {

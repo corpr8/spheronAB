@@ -1,9 +1,14 @@
+var moduleName = 'mongo'
+var Logger = require('./logger.js')
+var logger;
+var settings = require('./settings.json')
 var generateUUID = require('./generateUUID.js');
 var mongo = require('mongodb');
 var fs = require('fs');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
-var url = "mongodb://192.168.61.1:27017/";
+var url = "mongodb://127.0.0.1:27017/"; //if running locally on network.
+//var url = "mongodb://192.168.61.1:27017/"; //if running locally on macbook with alias set up.
 var db = [];
 var dbo = [];
 var mongoNet = [];
@@ -13,13 +18,16 @@ var mongoNet = [];
 */ 
 
 var mongoUtils = {
+	logger,
 	init: function(callback){
+		var that = this
+		that.logger = new Logger(settings.logOptions)
 		MongoClient.connect(url, { useNewUrlParser: true }, function(err, thisDb) {
 			db = thisDb
 			if (err) throw err;
 			dbo = db.db("myBrain");
 			mongoNet = dbo.collection("brain")
-			console.log('Connected to Mongo')
+			that.logger.log(4,'Connected to Mongo')
 			callback()
 		});
 	},
@@ -28,6 +36,7 @@ var mongoUtils = {
 		return
 	},
 	initTick:function(callback){
+		var that = this
 		mongoNet.insertOne({
 			tick:"tock",
 			globalTick: 0
@@ -35,14 +44,15 @@ var mongoUtils = {
 			if(err){ 
 				throw err
 			} else { 
-				console.log('inserted tick')
+				that.logger.log(4,'inserted tick')
 				callback()
 			}
 		})		
 	},
 	dropDb: function(callback){
+		var that = this
 		mongoNet.drop()
-		console.log('dropped old database')
+		that.logger.log(4,'dropped old database')
 		callback()
 	},
 	find: function(callback){
@@ -126,13 +136,15 @@ var mongoUtils = {
 		});
 	},
 	_old_saveSpheron: function(spheronData, callback){
-		console.log('saving spheron')
-		console.log('new data: ' + JSON.stringify(spheronData))
+		var that = this
+		that.logger.log(4,'saving spheron')
+		that.logger.log(5,'new data: ' + JSON.stringify(spheronData))
 		mongoNet.updateOne({"spheronId" : spheronData.spheronId}, spheronData, function(err, result){
 			callback()
 		})
 	},
 	deleteSpheron: function(id, callback){
+		var that = this
 		/*
 		* TODO: We should make sure that deleting a spheron is safe - i.e. there are no connection objects pointing at or from it.
 		*/
@@ -143,7 +155,7 @@ var mongoUtils = {
 			});
 			callback()
 		} catch (e) {
-			console.log('bad delete: ' + e)
+			that.logger.log(4,'bad delete: ' + e)
 			throw(e);
 		}
 	},
@@ -153,19 +165,20 @@ var mongoUtils = {
 		*/
 	},
 	dropCollection: function(callback){
+		var that = this
 		mongoNet.drop()
-		console.log('Collection dropped')
+		that.logger.log(4,'Collection dropped')
 		callback()
 	},
 	setupDemoData: function(demoData, callback){
 		var that = this
 		this.dropCollection(function(){
 			//now import this spheron data into the db
-			//console.log(JSON.stringify(demoData))
+			//that.logger.log(4,JSON.stringify(demoData))
 			//now iterate the data and load it...
 			that.createProblemDefinition(demoData, function(){
 				that.createSpheronFromArrayIterator(0, demoData, function(){
-					console.log('sample spherons created.')
+					that.logger.log(4,'sample spherons created.')
 					callback()
 				})	
 			})
@@ -180,7 +193,7 @@ var mongoUtils = {
 		var that = this
 		that.createProblemDefinition(problemDefinition, function(){
 			that.createSpheronFromArrayIterator(0, problemDefinition, function(){
-				console.log('Problem imported, spheron array created.')
+				that.logger.log(4,'Problem imported, spheron array created.')
 				callback()
 			})
 		})
@@ -196,7 +209,7 @@ var mongoUtils = {
 	createSpheronFromArrayIterator: function(idx, problemDescription, callback){
 		var that = this
 		if(idx < (problemDescription.network).length){
-			//console.log(JSON.stringify(problemDescription.network[idx]))
+			//that.logger.log(4,JSON.stringify(problemDescription.network[idx]))
 			var thisSpheron = problemDescription.network[idx]
 			thisSpheron.problemId = problemDescription.problemId
 			mongoNet.insertOne(thisSpheron, function(err, res) {
@@ -209,9 +222,10 @@ var mongoUtils = {
 		}
 	},
 	getNextPendingSpheron: function(tickStamp, callback){
+		var that = this
 		//The main function loop - pulls back spherons which are awaitng processing.
 		//TODO: Works but needs to return the one with the lowest pendAct + state == pending
-		console.log('getting next spheron for tick: ' + tickStamp)
+		that.logger.log(4,'getting next spheron for tick: ' + tickStamp)
 		//nextTick: { $lt: thisNextTick },
 					//
 		mongoNet.findOneAndUpdate({
@@ -225,20 +239,21 @@ var mongoUtils = {
 			sort: {nextTick: -1}
 		}, function(err,doc){
 			if(err){
-				console.log('no pending spherons: ' + err)
+				that.logger.log(4,'no pending spherons: ' + err)
 				callback({})
 			} else if (doc.value != null){ 
-				console.log('spheron is: ' + JSON.stringify(doc.value))
+				that.logger.log(4,'spheron is: ' + JSON.stringify(doc.value))
 				callback(doc.value)
 			} else {
-				console.log('spheron was null: ' + JSON.stringify(doc))
+				that.logger.log(4,'spheron was null: ' + JSON.stringify(doc))
 				callback({})
 			}
 		})
 	},
 	persistSpheron: function(spheronId, updateJSON, callback){
-		console.log('about to persist spheron: ' + spheronId)
-		console.log('update JSON is: ' + JSON.stringify(updateJSON))
+		var that = this
+		that.logger.log(4,'about to persist spheron: ' + spheronId)
+		that.logger.log(6,'update JSON is: ' + JSON.stringify(updateJSON))
 		mongoNet.findOneAndUpdate({
 			spheronId: spheronId
 		},{

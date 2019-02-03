@@ -3,6 +3,9 @@
 /*
 * A spheron is a configurable computing unit. It an instance of the active component of a Speheronet.
 */
+var moduleName = 'spheron'
+var Logger = require('./logger.js')
+var settings = require('./settings.json')
 var add = require('vectors/add')(2)
 var mag = require('vectors/mag')(2)
 var generateUUID = require('./generateUUID.js')
@@ -10,8 +13,11 @@ var heading = require('vectors/heading')(2)
 const radToDeg = 180 / Math.PI
 const degToRad = Math.PI / 180
 
-var Spheron = function (config) {
+var Spheron = function (config, logOptions) {
+	var that = this
 	//connections, exclusions, mode, problemId, testLength, testIdx
+	//that.logger = 
+	this.logOptions = logOptions
 	this.io = (config.io) ? config.io : {}
 	this.signalVector = {}
 	this.state = 'idle'
@@ -30,6 +36,8 @@ var Spheron = function (config) {
 	this.exclusions = (config.exclusions) ? config.exclusions : []
 	this.nextTick = (config.nextTick) ? config.nextTick : 0 
 }
+
+Spheron.prototype.logger = new Logger(settings.logOptions)
 
 Spheron.prototype.calculateSignalVector = function(){
 	/*
@@ -142,9 +150,9 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 		}
 
 		if(excludeThis == false){
-			//console.log('thisConn path: ' + thisConn.path)
+			that.logger.log(moduleName, 6,'thisConn path: ' + thisConn.path)
 			thisConn.path = (thisConn.path !== undefined) ? thisConn.path : thisConn.id
-			console.log('thisConn path is: ' + thisConn.path)
+			that.logger.log(moduleName, 6,'thisConn path is: ' + thisConn.path)
 			
 			for(var thisOutput in theseOutputs){
 
@@ -176,7 +184,7 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 				thisConn.val = that._runOutputFn(thisConn)
 				thisResults[that.io[key].id].val = thisConn.val
 
-				console.log(JSON.stringify('***' + JSON.stringify(thisConn)))
+				that.logger.log(moduleName, 4,JSON.stringify('***' + JSON.stringify(thisConn)))
 				thisResults[that.io[key].id].problemId = thisConn.problemId
 
 				/*does not work currently*/
@@ -191,15 +199,15 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 				*/
 			}
 		} else {
-			//console.log('we excluded: ' + thisConn.id)
+			that.logger.log(moduleName, 4,'we excluded: ' + thisConn.id)
 		}
 	}
 	
 	if(callback){
-		console.log('calling back from spherons activate function - with these results: ' +  JSON.stringify(thisResults))
+		that.logger.log(moduleName, 4,'calling back from spherons activate function - with these results: ' +  JSON.stringify(thisResults))
 		callback(thisResults)
 	} else {
-		console.log('returning from spherons activate function - with the result: ' +  JSON.stringify(thisResults))
+		that.logger.log(moduleName, 4,'returning from spherons activate function - with the result: ' +  JSON.stringify(thisResults))
 		return thisResults
 	}
 }
@@ -207,7 +215,7 @@ Spheron.prototype.activate = function(inputSignals, exclusions, callback){
 Spheron.prototype._runOutputFn = function(thisConn){
 	var that = this
 	if(thisConn.outputFn){
-		console.log('we had an output function')
+		that.logger.log(moduleName, 4,'we had an output function')
 		if(that.trainingMode == true && thisConn.outputFn.ignoreWhileTrain == true){
 			//nothing to do.
 		} else {
@@ -226,7 +234,7 @@ Spheron.prototype._runOutputFn = function(thisConn){
 				thisConn.val = 1 / (1 + Math.exp(-thisConn.val))
 				//*** end To be verified ***
 			} else {
-				console.log('output function not handled as yet. Please code it. ')
+				that.logger.log(moduleName, 4,'output function not handled as yet. Please code it. ')
 			}
 		}
 	}

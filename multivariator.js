@@ -16,8 +16,12 @@
 * node ./tests/multivariator_test.js
 *
 */
+var moduleName = 'multivariator'
+var Logger = require('./logger.js')
+var settings = require('./settings.json')
 
 var multivariator = {
+	logger: new Logger(settings.logOptions),
 	finalOutput: [],
 	MapIterator:function(thisMaps, thisMapIdxArray, callback){
 		var that = this
@@ -69,7 +73,7 @@ var multivariator = {
 		var that = this
 		resultantArray = (resultantArray) ? resultantArray : []
 		if(sourceArrays[sourceArraysIdx] != null){
-			//console.log(sourceArrays[sourceArraysIdx])
+			that.logger.log(moduleName, 6,sourceArrays[sourceArraysIdx])
 
 			that.excludeFromArray(thisMaps[sourceArraysIdx], sourceArrays[sourceArraysIdx], function(superArrayResult){
 				resultantArray.push(superArrayResult)
@@ -119,11 +123,12 @@ var multivariator = {
 		})
 	},
 	isVariatedIterator: function(path, variantMaps, variantMapIdx, variantMapIdxItemIdx, callback){
-		console.log('in multivariator')
+		var that = this
+		that.logger.log(moduleName, 5,'in multivariator')
 		//note: will currentlhy only pull back the first iterant.
 		if(variantMaps[variantMapIdx]){
 			if(variantMaps[variantMapIdx][variantMapIdxItemIdx]){
-				console.log('searching for: ' + variantMaps[variantMapIdx][variantMapIdxItemIdx])
+				that.logger.log(moduleName, 6,'searching for: ' + variantMaps[variantMapIdx][variantMapIdxItemIdx])
 				if(path.substring(variantMaps[variantMapIdx][variantMapIdxItemIdx]) != -1){
 					callback({map: variantMaps[variantMapIdx], id: variantMaps[variantMapIdx][variantMapIdxItemIdx]})
 				} else {
