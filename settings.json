@@ -5,13 +5,14 @@
 	"testData": "./tests/newFormatData1/basicProblemDefinitionV2-multiVariant-variated_output.json",
 	"persistAfterPhase" : [true, false, false, false, false, true, false],
 	"ifPersistUpdateState" : [false, false, false, false, false, true, false],
+	"disableMutation" : true,
 	"haltAfterTick": true,
-	"haltAfterTickNo": 10,
+	"haltAfterTickNo": 20,
 	"haltAfterProcessingSpheron": false,
 	"haltAfterProcessingSpheronId": "outputSpheron1",
 	"loadUDP": false,
 	"logOptions": {
-		"logLevel": 3,
+		"logLevel": 1,
 		"logExtOutputEvents": true,
 		"logPath": "./out.txt"
 	}

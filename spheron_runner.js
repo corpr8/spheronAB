@@ -375,22 +375,26 @@ var spheron_runner = {
 		var that = this
 		var trainMode = mongoUtils.getLessonModeById(that.spheron.problemId, function(currentMode){
 			logger.log(moduleName, 4,'lesson is in ' + currentMode + ' mode')
-			if(currentMode == 'autoTrain'){
-				if(that.spheron.variantMaps.length < settings.maxTests){ //limit tests to 3 comcurrent right now...
-				if( Math.random() > .9){
-					that.mutationSelector(function(){
-						//TODO: Note - I do not believe that the persist function below is strictly necessary - however, it is good for the debug...
-						that.persistSpheron({updateState: false}, function(){
-							callback()	
-						})
-					})
+			if(settings.disableMutation == false){
+				if(currentMode == 'autoTrain'){
+					if(that.spheron.variantMaps.length < settings.maxTests){ //limit tests to 3 comcurrent right now...
+						if( Math.random() > .9){
+							that.mutationSelector(function(){
+								//TODO: Note - I do not believe that the persist function below is strictly necessary - however, it is good for the debug...
+								that.persistSpheron({updateState: false}, function(){
+									callback()	
+								})
+							})
+						} else {
+							//we won't mutate this spheron this time.
+							callback()
+						}
+					} else {
+						callback()
+					}
 				} else {
-					//we won't mutate this spheron this time.
 					callback()
 				}
-			} else {
-				callback()
-			}
 			} else {
 				//we should not mutate as we are a fully trained lesson / problem.
 				callback()
@@ -724,10 +728,10 @@ var spheron_runner = {
 
 		var that = this
 		that.iterateAggregateTestResults(variantMap, 0, {}, function(winner){
-			logger.log(moduleName, 4,'our test winner is: ' + winner)
+			logger.log(moduleName, 2,'our test winner is: ' + winner)
 			//TODO: now cleanup the tests, connections, scoring and maps.
 			that.cleanupSpheron(variantMapIdx, variantMap, winner, function(){
-				logger.log(moduleName, 4,'spheron is house-kept')
+				logger.log(moduleName, 3,'spheron is house-kept')
 				callback()
 			})
 		})
