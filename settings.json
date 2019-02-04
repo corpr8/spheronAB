@@ -6,7 +6,7 @@
 	"persistAfterPhase" : [true, false, false, false, false, true, false],
 	"ifPersistUpdateState" : [false, false, false, false, false, true, false],
 	"haltAfterTick": true,
-	"haltAfterTickNo": 10,
+	"haltAfterTickNo": 100,
 	"haltAfterProcessingSpheron": false,
 	"haltAfterProcessingSpheronId": "outputSpheron1",
 	"loadUDP": false,

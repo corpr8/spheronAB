@@ -30,6 +30,4 @@ logger.prototype.exit = function(callback){
 	callback()
 }
 
-
-
 module.exports = logger;

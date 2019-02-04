@@ -7,8 +7,8 @@ var mongo = require('mongodb');
 var fs = require('fs');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
-var url = "mongodb://127.0.0.1:27017/"; //if running locally on network.
-//var url = "mongodb://192.168.61.1:27017/"; //if running locally on macbook with alias set up.
+//var url = "mongodb://127.0.0.1:27017/"; //if running locally on network.
+var url = "mongodb://192.168.61.1:27017/"; //if running locally on macbook with alias set up.
 var db = [];
 var dbo = [];
 var mongoNet = [];
@@ -83,13 +83,17 @@ var mongoUtils = {
 		});
 	},
 	getLessonTestAnswer: function(lessonId, testIdx, callback){
+		var that = this
+		if(!lessonId) throw 'no lessonId supplied'
+		if(!testIdx) throw 'no testIdx supplied'
 		mongoNet.findOne({
 			type: "lesson",
 			problemId: lessonId
 		}, function(err, results) {
 	    	if (err){
 	    		callback();
-	    	} else {	
+	    	} else {
+	    		that.logger.log(3,'lesson data: ' + results.tests[testIdx])
 	    		callback(results.tests[testIdx].outputs)
 	    	}
 		});
