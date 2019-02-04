@@ -728,7 +728,7 @@ var spheron_runner = {
 
 		var that = this
 		that.iterateAggregateTestResults(variantMap, 0, {}, function(winner){
-			logger.log(moduleName, 2,'our test winner is: ' + winner)
+			logger.log(moduleName, 3,'our test winner is: ' + winner)
 			//TODO: now cleanup the tests, connections, scoring and maps.
 			that.cleanupSpheron(variantMapIdx, variantMap, winner, function(){
 				logger.log(moduleName, 3,'spheron is house-kept')
@@ -1124,8 +1124,9 @@ var spheron_runner = {
 			if(currentMode == 'autoTrain'){
 				//get the actual expected value...
 
-				logger.log(moduleName, 4,'Our propagation message is ' + JSON.stringify(newQueueItem))
-				mongoUtils.getLessonTestAnswer(newQueueItem.problemId, newQueueItem.testIdx, function(expectedAnswer){
+				logger.log(moduleName, 3,'Our propagation message is ' + JSON.stringify(newQueueItem))
+				console.log('testIdx is: ' + JSON.stringify(newQueueItem.testIdx))
+				mongoUtils.getLessonTestAnswer(newQueueItem.problemId, JSON.stringify(newQueueItem.testIdx), function(expectedAnswer){
 					logger.log(moduleName, 4,'handling expected answer ' + JSON.stringify(expectedAnswer))
 					var outputPort = (newQueueItem.path).split(';')[(newQueueItem.path).split(';').length -1]
 					logger.log(moduleName, 4,'message port:' + outputPort)

@@ -7,7 +7,7 @@
 	"ifPersistUpdateState" : [false, false, false, false, false, true, false],
 	"disableMutation" : true,
 	"haltAfterTick": true,
-	"haltAfterTickNo": 20,
+	"haltAfterTickNo": 100,
 	"haltAfterProcessingSpheron": false,
 	"haltAfterProcessingSpheronId": "outputSpheron1",
 	"loadUDP": false,
