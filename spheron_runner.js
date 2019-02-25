@@ -1521,6 +1521,7 @@ var spheron_runner = {
 	},
 	activateNonVariant: function(testIdx, thisSigId, callback){
 		var that = this
+		logger.log(moduleName, 1, that.spheron.spheronId + " running non-variant activate for sigId: " + thisSigId + " on testIdx: " + testIdx)
 		that.spheron.activate(null, null, function(thisResult){
 			that._cleanupInputMessageQueue()
 
@@ -1561,12 +1562,14 @@ var spheron_runner = {
 						logger.log(moduleName, 4,thisVariatedMap[v].join(','))
 					}
 					logger.log(moduleName, 4,'----')
+					logger.log(moduleName, 1,that.spheron.spheronId + " running multi-variant activate for sigId: " + thisSigId + " on testIdx: " + testIdx)
 					that.activationIterator(thisVariatedMap, mapIdx, testIdx, thisSigId, callback)
 				})
 			} else {
 				var systemTickPlusOne = (parseInt(that.systemTick) +1).toString()
 				if(mapIdx < variatedMap.length){
 					var v = variatedMap[mapIdx].join(',')
+					logger.log(moduleName, 1,that.spheron.spheronId + " running multi-variant activate for sigId: " + thisSigId + " on testIdx: " + testIdx)
 					that.spheron.activate(null, v, function(thisResult){
 						that._cleanupInputMessageQueue()
 
